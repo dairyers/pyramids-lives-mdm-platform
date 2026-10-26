@@ -1,0 +1,411 @@
+{
+  "timing": {
+    "scroll": 500,
+    "click": 200,
+    "type": 200,
+    "type_char_ms": 25,
+    "read_ms_per_char": 38,
+    "min_flag_ms": 2200,
+    "max_flag_ms": 9000
+  },
+  "page_names": {
+    "home": "Home", "new": "New request", "requests": "Requests", "insights": "Sales insights",
+    "waiting": "Waiting times", "audit": "Audit trail", "admin": "Platform settings"
+  },
+  "role_for": {},
+  "stories": {
+    "S1": {
+      "steps": [
+        {"ui": 0, "ops": [
+          {"op": "flag", "kind": "how", "text": "Nothing is pre-filled. Watch Amy key in every field herself, the way a real requestor would."},
+          {"op": "fill", "domain": "ITEM", "from": "scen.S1.payload", "skip": ["U_RegLicenseNo"]},
+          {"op": "click", "t": {"key": "intake_submit"}},
+          {"op": "test", "text": "The form stopped the request and named the missing regulatory licence.", "has": ["regulatory"]},
+          {"op": "flag", "kind": "security", "text": "A blocked attempt is written to the audit trail with the names of the fields in error, never the values typed in them."},
+          {"op": "fill", "domain": "ITEM", "from": "scen.S1.fix"},
+          {"op": "click", "t": {"key": "intake_submit"}},
+          {"op": "click", "t": {"key": "intake_approve"}},
+          {"op": "test", "text": "The request was sent and routed to Quality / Regulatory automatically.", "has": ["request submitted"]}
+        ]},
+        {"ui": 1, "ops": [
+          {"op": "flag", "kind": "security", "text": "Each role sees only the fields its policy allows, set in the settings file and not in code."},
+          {"op": "policy", "text": "The item's cost is hidden from the regulatory approver.", "from": "scen.S1.payload", "domain": "ITEM", "field": "LastPurPrc", "role": "REGULATORY_OFFICER", "status": "PENDING_REGULATORY", "expect": "hidden", "backed": "tests/test_security.py::test_policy_matrix_from_config"},
+          {"op": "click", "t": {"text": "Email", "exact": true}},
+          {"op": "look", "t": {"any": "Simulated email"}, "label": "Outlook", "text": "The approver also gets this email in Outlook the moment the request reaches them. It shows only the fields this role may see, and it has Approve and Reject buttons built in."},
+          {"op": "click", "t": {"text": "Technical JSON", "last": true}},
+          {"op": "json", "items": [
+            {"key": "type", "label": "Card", "text": "AdaptiveCard is Microsoft's format for actionable messages. Outlook draws this JSON as the card you just saw."},
+            {"key": "version", "label": "Version", "text": "The card schema version, taken from the settings file."},
+            {"key": "originator", "label": "Sender ID", "text": "The ID Microsoft 365 registered for this platform. Outlook only shows the buttons if it matches."},
+            {"has": "Visible fields", "label": "Role-filtered", "text": "Only the fields the approver's role may see by email. Sensitive values are withheld, so no email ever carries a bank account."},
+            {"has": "Action.Http", "label": "Button", "text": "Each button is an HTTP call. Outlook posts the choice straight back to the platform."},
+            {"has": "approver_comment.value", "label": "Comment", "text": "The comment box in the card. Outlook fills in what the approver typed when they click."}
+          ]},
+          {"op": "click", "t": {"text": "Email", "exact": true}},
+          {"op": "flag", "kind": "how", "text": "This approver decides from the email itself: the Approve button in the card posts the decision back, exactly as clicking it in Outlook would."},
+          {"op": "click", "t": {"keyp": "hook_"}}
+        ]},
+        {"ui": 2, "ops": [
+          {"op": "type", "t": {"keyp": "cmt_"}, "value": "Commercially approved for our entity."},
+          {"op": "click", "t": {"keyp": "approve_"}}
+        ]},
+        {"ui": 3, "ops": [
+          {"op": "type", "t": {"keyp": "cmt_"}, "value": "Operational checks complete."},
+          {"op": "click", "t": {"keyp": "approve_"}}
+        ]},
+        {"ui": 4, "ops": [
+          {"op": "click", "t": {"text": "SAP records"}},
+          {"op": "click", "t": {"text": "Items", "exact": true}},
+          {"op": "click", "t": {"keyp": "sync_"}},
+          {"op": "test", "text": "The approved item was created in SAP.", "has": ["synced to"]}
+        ]},
+        {"ui": 5, "ops": [
+          {"op": "test", "text": "Amy sees her item as created in SAP.", "has": ["created in sap"]},
+          {"op": "flag", "kind": "security", "text": "A requestor sees only their own requests, never anyone else's.", "backed": "tests/test_security.py::test_requester_sees_only_own"}
+        ]},
+        {"ui": 6, "ops": [
+          {"op": "expand", "text": "See the check catch a change"},
+          {"op": "click", "t": {"text": "Change one entry in a copy and check it"}},
+          {"op": "test", "text": "The audit trail caught an altered entry in a copy of the log.", "has": ["caught"], "backed": "tests/test_audit_chain.py::test_editing_an_entry_is_caught_at_that_entry"}
+        ]}
+      ]
+    },
+    "S4": {
+      "steps": [
+        {"ui": 0, "ops": [
+          {"op": "fill", "domain": "COST_CENTER", "from": "scen.S4.payload"},
+          {"op": "click", "t": {"key": "intake_submit"}},
+          {"op": "click", "t": {"key": "intake_approve"}},
+          {"op": "test", "text": "The cost center was routed to the MDM Analyst without Marcus having to know who approves it.", "has": ["request submitted"]}
+        ]},
+        {"ui": 1, "ops": [
+          {"op": "type", "t": {"keyp": "cmt_"}, "value": "New business unit confirmed."},
+          {"op": "click", "t": {"keyp": "approve_"}}
+        ]},
+        {"ui": 2, "ops": [
+          {"op": "policy", "kind": "row", "text": "Finance cannot see the cost center request at all.", "as": "weijie@livesgroup.com", "requester": "marcus@livesgroup.com", "domain": "COST_CENTER", "status": "APPROVED", "expect": "hidden", "backed": "tests/test_security.py::test_finance_sees_only_its_queue"}
+        ]}
+      ]
+    },
+    "S2": {
+      "steps": [
+        {"ui": 0, "ops": [
+          {"op": "fill", "domain": "CUSTOMER", "from": "scen.S2.payload"},
+          {"op": "expand", "text": "SAP Business One"},
+          {"op": "json", "items": [
+            {"key": "CardName", "label": "SAP field", "text": "SAP's business partner name field, filled exactly as typed. This is the field the duplicate check compares."},
+            {"key": "LicTradNum", "label": "SAP field", "text": "The tax ID. An exact match with a record already in SAP is a hard stop."},
+            {"key": "CreditLine", "label": "SAP field", "text": "SAP's credit limit. Finance needs it to decide, so approvers see it."},
+            {"key": "BankAcct", "label": "Private", "text": "SAP's bank account field. It is masked for everyone except the Payments Officer, and it is never put in an email."},
+            {"key": "U_Entity", "label": "Custom field", "text": "A user-defined SAP field (the U_ prefix is SAP's convention) holding the business entity, which helps decide the approval route."}
+          ]},
+          {"op": "collapse", "text": "SAP Business One"},
+          {"op": "click", "t": {"key": "intake_submit"}},
+          {"op": "look", "t": {"any": "We read the abbreviation as"}, "optional": true, "label": "Name read", "text": "First the system reads the name: it expands abbreviations such as SMU, then compares the full name with every record already in SAP."},
+          {"op": "compare", "optional": true, "text": "{record}: the red rows do not match ({diff}; nothing on file for {unknown}). Answer: No, a different organisation."},
+          {"op": "radio", "value": "No, a different organisation", "all": true, "optional": true},
+          {"op": "type", "t": {"keyp": "intake_rel_why_"}, "value": "Different legal entity with its own billing.", "all": true, "optional": true},
+          {"op": "click", "t": {"key": "intake_approve"}},
+          {"op": "test", "text": "The $75,000 credit request was sent to Finance.", "has": ["request submitted"]}
+        ]},
+        {"ui": 1, "ops": [
+          {"op": "look", "t": {"any": "Notes attached"}, "optional": true, "label": "Requestor's note", "text": "Before deciding, Wei Jie reads what the requestor said about the similar record: the reason for treating it as a different organisation. He can see the evidence behind it, not just the claim."},
+          {"op": "policy", "text": "The bank account shows only its last four digits to Finance.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "BankAcct", "role": "FINANCE_APPROVER", "status": "PENDING_FINANCE", "expect": "masked", "backed": "tests/test_security.py::test_smu_solutions_bank_account_visibility"},
+          {"op": "type", "t": {"keyp": "cmt_"}, "value": "Credit terms and bank details verified."},
+          {"op": "click", "t": {"keyp": "approve_"}}
+        ]},
+        {"ui": 2, "ops": [
+          {"op": "click", "t": {"text": "SAP records"}},
+          {"op": "click", "t": {"keyp": "sync_"}},
+          {"op": "test", "text": "The approved customer was created in SAP.", "has": ["synced to"]}
+        ]},
+        {"ui": 3, "ops": [
+          {"op": "flag", "kind": "security", "text": "Only the Payments Officer can see the full account number, and only once the request is approved. Viewing it is written to the audit trail.", "backed": "tests/test_security.py::test_payments_release_queue_only_approved_with_bank_details"},
+          {"op": "policy", "text": "The Payments Officer sees the full account number.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "BankAcct", "role": "PAYMENTS_OFFICER", "status": "SYNCED_TO_SAP", "expect": "full"},
+          {"op": "policy", "text": "The requestor still sees only the last four digits.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "BankAcct", "role": "REQUESTER", "status": "SYNCED_TO_SAP", "expect": "masked", "no_screen": true}
+        ]}
+      ]
+    },
+    "S3": {
+      "steps": [
+        {"ui": 0, "ops": [
+          {"op": "fill", "domain": "CUSTOMER", "from": "scen.S3.base_payload"},
+          {"op": "click", "t": {"key": "intake_submit"}},
+          {"op": "test", "text": "NUHS was recognised as National University Hospital Singapore, already in SAP.", "has": ["C10023"]},
+          {"op": "compare", "text": "{record}: the red rows do not match ({diff}; nothing on file for {unknown}). Answer: No, it is different."},
+          {"op": "flag", "kind": "security", "text": "Contact, phone, address and email of the existing record are shown only to roles allowed to compare them. The audit trail keeps signal IDs, never those values."},
+          {"op": "click", "t": {"key": "intake_approve"}},
+          {"op": "flag", "kind": "how", "text": "Nothing is sent until Marcus answers. Because the details differ, he chooses 'No, it is different' and gives a reason the approver will read."},
+          {"op": "type", "t": {"label": "Why does it need a new record?"}, "value": "Different business unit with separate billing"},
+          {"op": "click", "t": {"key": "intake_gate_justify"}},
+          {"op": "test", "text": "The request was sent to the MDM Analyst with Marcus's reason attached.", "has": ["request submitted"]}
+        ]},
+        {"ui": 1, "ops": [
+          {"op": "type", "t": {"keyp": "cmt_"}, "value": "Same hospital, use the existing record."},
+          {"op": "click", "t": {"keyp": "reject_"}}
+        ]},
+        {"ui": 2, "ops": [
+          {"op": "click", "t": {"text": "History"}}
+        ]}
+      ]
+    },
+    "S5": {
+      "steps": [
+        {"who": "marcus@livesgroup.com", "page": "new", "text": "First, a request has to be waiting with Finance. Marcus raises the $75,000 customer, exactly as in his earlier story.", "ops": [
+          {"op": "fill", "domain": "CUSTOMER", "from": "scen.S2.payload"},
+          {"op": "click", "t": {"key": "intake_submit"}},
+          {"op": "compare", "optional": true, "text": "{record}: the red rows do not match ({diff}; nothing on file for {unknown}). Answer: No, a different organisation."},
+          {"op": "radio", "value": "No, a different organisation", "all": true, "optional": true},
+          {"op": "type", "t": {"keyp": "intake_rel_why_"}, "value": "Different legal entity with its own billing.", "all": true, "optional": true},
+          {"op": "click", "t": {"key": "intake_approve"}}
+        ]},
+        {"ui": 0, "ops": [
+          {"op": "click", "t": {"text": "2 days", "exact": true}},
+          {"op": "expand", "text": "After 2 days"},
+          {"op": "look", "t": {"any": "Simulated email"}, "label": "Outlook", "text": "Day 2: this urgent email reaches Wei Jie's Outlook on its own. It is marked high importance and has the same Approve and Reject buttons, so he can decide without opening the app."},
+          {"op": "click", "t": {"text": "Technical JSON", "last": true}},
+          {"op": "json", "items": [
+            {"key": "rule_id", "label": "Rule", "text": "Which reminder rule fired. The rules and their timings live in the settings file."},
+            {"key": "action", "label": "Instruction", "text": "SEND_HIGH_PRIORITY_EMAIL is what the mail connector is told to do."},
+            {"key": "after_hours", "label": "Trigger", "text": "The waiting time that triggers the rule: 48 hours is 2 days."},
+            {"key": "hours_pending", "label": "Waited", "text": "How long the request has actually been waiting."},
+            {"key": "sender", "label": "From", "text": "The platform's own mailbox, never a person's."},
+            {"key": "recipients", "label": "To", "text": "Who receives it. Here, the approver holding the request."}
+          ]},
+          {"op": "collapse", "text": "After 2 days"},
+          {"op": "click", "t": {"text": "4 days", "exact": true}},
+          {"op": "expand", "text": "After 4 days"},
+          {"op": "look", "t": {"any": "Simulated calendar invite"}, "label": "Outlook", "text": "Day 4: a review meeting is booked in Outlook for the approver and the Supervisor, with Accept, Tentative and Decline buttons. The agenda asks why the request is stuck and what unblocks it."},
+          {"op": "click", "t": {"text": "Technical JSON", "last": true}},
+          {"op": "json", "items": [
+            {"key": "action", "label": "Instruction", "text": "CREATE_CALENDAR_INVITE tells the connector to create a meeting, not an email."},
+            {"key": "title", "label": "Meeting", "text": "The meeting title that appears in everyone's calendar."},
+            {"key": "recipients", "label": "Invited", "text": "Both people who can unblock it: the approver and the Supervisor."}
+          ]},
+          {"op": "collapse", "text": "After 4 days"},
+          {"op": "click", "t": {"text": "8 days", "exact": true}},
+          {"op": "expand", "text": "After 8 days"},
+          {"op": "look", "t": {"any": "Simulated email"}, "label": "Outlook", "text": "Day 8: the request is handed to Wei Jie's delegate, who gets this email with the same Approve and Reject buttons. Nobody has to notice the request for it to keep moving."},
+          {"op": "click", "t": {"text": "Technical JSON", "last": true}},
+          {"op": "json", "items": [
+            {"key": "reassigned_from", "label": "From", "text": "The approver who did not act."},
+            {"key": "reassigned_to", "label": "To", "text": "The delegate named in the settings file."},
+            {"has": "Action.Http", "label": "Button", "text": "The Approve button is an HTTP POST back to the platform. The delegate's click is the approval."},
+            {"has": "approver_comment.value", "label": "Comment", "text": "Outlook fills in the comment the delegate typed when they click."}
+          ]},
+          {"op": "collapse", "text": "After 8 days"},
+          {"op": "click", "t": {"text": "18 days", "exact": true}},
+          {"op": "test", "text": "By day 18 all three reminders have gone out, so nobody had to chase.", "has": ["hand-over"]}
+        ]},
+        {"ui": 1, "ops": [
+          {"op": "policy", "text": "The Supervisor sees request names and timings only. Private values are never shown to this role.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "BankAcct", "role": "SUPERVISOR", "status": "PENDING_FINANCE", "expect": "hidden", "backed": "tests/test_security.py::test_supervisor_row_access_is_metadata_only"}
+        ]}
+      ]
+    },
+    "S9": {
+      "label": "Regional sales view: Products A, B and C across five countries",
+      "steps": [
+        {"who": "priya@livesgroup.com", "page": "insights", "text": "The Sales insights page shows customer purchase orders only. MDM setup requests are a different thing and are kept out of these numbers.", "ops": [
+          {"op": "look", "t": {"key": "an_filters"}, "label": "Filters", "text": "These filters steer every chart on the page: country, product, the measure (units, sales value or gross margin) and existing versus new customers. 'Customise page' chooses which blocks appear."},
+          {"op": "look", "t": {"any": "Units, last 12 months"}, "label": "Headline", "text": "Headline numbers. Growth is the change over the last 12 months against the same 12 months a year earlier, shown as a percentage. Green is up, red is down."},
+          {"op": "look", "t": {"key": "an_map"}, "label": "Map", "text": "The map comes first. Dot size is the amount, colour is growth, so the biggest and fastest-growing markets stand out across Southeast Asia at a glance."},
+          {"op": "select", "t": {"key": "an_f_country"}, "value": "Malaysia"},
+          {"op": "test", "text": "Picking one country opened the map up to its cities.", "has": ["by city"]},
+          {"op": "look", "t": {"key": "an_map"}, "label": "Malaysia by city", "text": "Pick Malaysia and the map divides it by city: one hot spot per place, sized by its sales, with each city's share of the country in the table beside it."},
+          {"op": "click", "t": {"css": ".st-key-an_f_country button[aria-label=\"Remove Malaysia\"]"}},
+          {"op": "look", "t": {"key": "an_trend"}, "label": "More detail", "text": "The three charts below the map (units per month, the growth heatmap and gained or lost) all carry more than the picture: hover any point, bar or cell for the exact figures, and every one follows the filters above."}
+        ]},
+        {"who": "priya@livesgroup.com", "page": "insights", "text": "Every graph is customisable. Watch the same data re-cut by measure, by customer group and by comparison.", "ops": [
+          {"op": "click", "t": {"in": "an_f_basis", "text": "Sales value", "exact": true}},
+          {"op": "look", "t": {"key": "an_map"}, "label": "Map", "text": "One click on 'Sales value' and the headline numbers, map and every chart switch from units to dollars."},
+          {"op": "click", "t": {"in": "an_f_basis", "text": "Gross margin", "exact": true}},
+          {"op": "look", "t": {"key": "an_heat"}, "label": "Heatmap", "text": "Gross margin uses assumed margins per product, so you can see where profit, not just volume, is growing."},
+          {"op": "click", "t": {"in": "an_f_group", "text": "Existing", "exact": true}},
+          {"op": "look", "t": {"key": "an_change"}, "label": "Existing only", "text": "Existing customers only: accounts that bought nothing a year ago are removed, so growth from new customers is separated from growth in what current customers buy."},
+          {"op": "click", "t": {"in": "an_f_group", "text": "All", "exact": true}},
+          {"op": "click", "t": {"in": "an_f_basis", "text": "Units", "exact": true}},
+          {"op": "look", "t": {"key": "an_cmp_chart"}, "label": "Compare", "text": "The Compare chart lets you pick any measure, what to compare by and how to draw it."},
+          {"op": "click", "t": {"in": "an_cmp_by", "text": "Product", "exact": true}},
+          {"op": "click", "t": {"in": "an_cmp_view_a", "text": "Share of total", "exact": true}},
+          {"op": "look", "t": {"key": "an_cmp_chart"}, "label": "Share", "text": "By product, shown as a share of the total: which product is taking a growing slice, whatever the overall market does."},
+          {"op": "click", "t": {"in": "an_cmp_view_a", "text": "Index", "exact": true}},
+          {"op": "look", "t": {"key": "an_cmp_chart"}, "label": "Index", "text": "As an index, every product starts at 100, so fast and slow growers compare fairly even when their volumes differ a lot."},
+          {"op": "click", "t": {"text": "Customise page"}},
+          {"op": "flag", "kind": "how", "text": "Customise page: each block can be switched off, so a regional manager can keep only the map and the heatmap."},
+          {"op": "click", "t": {"text": "Customise page"}},
+          {"op": "look", "t": {"key": "an_actions"}, "label": "Actions", "text": "Recommended actions, in plain words and ranked. They are written from the numbers on this page: growth, forecast accuracy, customers buying less and cross-sell gaps."}
+        ]},
+        {"who": "priya@livesgroup.com", "page": "insights", "text": "The forecast explorer predicts the next months for one country and product, and shows how well each model did on months it never saw.", "ops": [
+          {"op": "click", "t": {"text": "Forecast explorer"}},
+          {"op": "look", "t": {"key": "an_model"}, "label": "Best model", "text": "The platform pre-selects the model with the lowest error on months it was never shown. Here that is: {value}."},
+          {"op": "look", "t": {"key": "an_chart"}, "label": "Forecast", "text": "The solid line is history, the dashed line is the forecast and the shaded band is the typical error, measured on hidden months, not guessed."},
+          {"op": "click", "t": {"in": "an_advanced", "text": "Advanced"}},
+          {"op": "look", "t": {"key": "an_chart"}, "label": "Models", "text": "Advanced mode draws the other trend models on the same chart, so you can see the best predictive model against today's simpler methods."},
+          {"op": "select", "t": {"key": "an_model"}, "value": "Linear trend"},
+          {"op": "look", "t": {"key": "an_chart"}, "label": "Linear trend", "text": "Switching to the plain linear trend changes the line. A straight trend ignores seasons, which is why it is not the one chosen."},
+          {"op": "select", "t": {"key": "an_model"}, "value": "Own season + regional growth"},
+          {"op": "look", "t": {"any": "Model comparison and observations"}, "label": "Comparison", "text": "Every model was tested on months it never saw. The table shows its average error, lower is better. The traditional flat-average rows are today's method and the yardstick."},
+          {"op": "look", "t": {"any": "What we observed"}, "label": "Observed", "text": "The observations below the table are written only from these numbers: which model is most accurate, and by how much it beats the traditional average."},
+          {"op": "look", "t": {"key": "an_rolling"}, "label": "Holds up?", "text": "Does the accuracy hold up? The same test is repeated on earlier windows, so the best model is not just one lucky window."},
+          {"op": "look", "t": {"any": "About the models"}, "optional": true, "label": "Models", "text": "Each model is explained in plain words: what it does, why choose it and what to watch out for."},
+          {"op": "click", "t": {"text": "Customers to follow up"}},
+          {"op": "flag", "kind": "how", "text": "Data science also flags customers buying less and customers who could buy more, so people spend time on the right accounts."}
+        ]}
+      ]
+    },
+    "R_RED": {
+      "label": "Redaction: one record, seen by every role",
+      "steps": [
+        {"who": "marcus@livesgroup.com", "page": "new", "text": "To see redaction working we need a record that holds private details. The Requestor keys in a customer with a credit limit and a bank account.", "ops": [
+          {"op": "fill", "domain": "CUSTOMER", "from": "scen.S2.payload"},
+          {"op": "click", "t": {"key": "intake_submit"}},
+          {"op": "compare", "optional": true, "text": "{record}: the red rows do not match ({diff}; nothing on file for {unknown}). Answer: No, a different organisation."},
+          {"op": "radio", "value": "No, a different organisation", "all": true, "optional": true},
+          {"op": "type", "t": {"keyp": "intake_rel_why_"}, "value": "Different legal entity with its own billing.", "all": true, "optional": true},
+          {"op": "click", "t": {"key": "intake_approve"}},
+          {"op": "test", "text": "The customer record now exists with its private details.", "has": ["request submitted"]}
+        ]},
+        {"who": "weijie@livesgroup.com", "page": "requests", "text": "Finance needs the credit terms to decide, so they are shown. The bank account is masked: only the last four digits appear.", "ops": [
+          {"op": "policy", "text": "Finance sees the bank account masked.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "BankAcct", "role": "FINANCE_APPROVER", "status": "PENDING_FINANCE", "expect": "masked", "backed": "tests/test_security.py::test_smu_solutions_bank_account_visibility"},
+          {"op": "type", "t": {"keyp": "cmt_"}, "value": "Credit terms verified."},
+          {"op": "click", "t": {"keyp": "approve_"}}
+        ]},
+        {"who": "priya@livesgroup.com", "page": "requests", "text": "The MDM Analyst checks for duplicates and creates the record in SAP. Redaction follows the role, not the person, so the bank account stays masked here too.", "ops": [
+          {"op": "policy", "text": "The MDM Analyst sees the bank account masked.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "BankAcct", "role": "MDM_LEAD", "status": "APPROVED", "expect": "masked"},
+          {"op": "expand", "text": "Who can see what", "optional": true},
+          {"op": "look", "t": {"css": "table.lv-lens"}, "optional": true, "label": "Who sees what", "text": "The 'Who can see what?' panel shows this one record through any role's eyes, so a reviewer can check the redaction without switching role. The Role dropdown picks whose view to show."},
+          {"op": "select", "t": {"key": "inbox_lens_role"}, "value": "Payments Officer", "optional": true},
+          {"op": "look", "t": {"css": "table.lv-lens tr[data-field=\"BankAcct\"]"}, "optional": true, "label": "Bank account", "text": "Payments Officer: the bank account row reads \"{row}\". The full number is released to this role only, and this lens never shows a viewer more than their own access allows."},
+          {"op": "select", "t": {"key": "inbox_lens_role"}, "value": "Finance Manager", "optional": true},
+          {"op": "look", "t": {"css": "table.lv-lens tr[data-field=\"BankAcct\"]"}, "optional": true, "label": "Bank account", "text": "Finance Manager: the same row reads \"{row}\". Finance gets the credit terms it needs, but only the last four digits of the account."},
+          {"op": "select", "t": {"key": "inbox_lens_role"}, "value": "Supervisor", "optional": true},
+          {"op": "look", "t": {"css": "table.lv-lens tr[data-field=\"BankAcct\"]"}, "optional": true, "label": "Bank account", "text": "Supervisor: the row reads \"{row}\". This role tracks timings only, so private values are not shown at all."},
+          {"op": "select", "t": {"key": "inbox_lens_role"}, "value": "Quality / Regulatory", "optional": true},
+          {"op": "look", "t": {"css": "table.lv-lens tr[data-field=\"BankAcct\"]"}, "optional": true, "label": "Bank account", "text": "Quality / Regulatory approver: the row reads \"{row}\". Their checks do not need financial details, so they never see them."},
+          {"op": "collapse", "text": "Who can see what", "optional": true},
+          {"op": "click", "t": {"text": "SAP records"}},
+          {"op": "click", "t": {"keyp": "sync_"}}
+        ]},
+        {"who": "ap.officer@livesgroup.com", "page": "requests", "text": "The Payments Officer is the only role that sees the full account number, because they release the payment. Each full view is written to the audit trail.", "ops": [
+          {"op": "policy", "text": "The Payments Officer sees the full account number.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "BankAcct", "role": "PAYMENTS_OFFICER", "status": "SYNCED_TO_SAP", "expect": "full", "backed": "tests/test_security.py::test_payments_release_queue_only_approved_with_bank_details"}
+        ]},
+        {"who": "auditor@livesgroup.com", "page": "requests", "text": "The Internal Auditor sees every request, but sensitive values stay masked.", "ops": [
+          {"op": "policy", "text": "The auditor sees the credit limit masked.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "CreditLine", "role": "AUDITOR", "status": "SYNCED_TO_SAP", "expect": "masked"},
+          {"op": "policy", "text": "The auditor sees the bank account masked.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "BankAcct", "role": "AUDITOR", "status": "SYNCED_TO_SAP", "expect": "masked", "backed": "tests/test_security.py::test_financial_terms_redacted_for_auditor_and_hidden_for_regulatory"}
+        ]},
+        {"who": "ra.officer@livesgroup.com", "page": "requests", "text": "The Quality / Regulatory approver is not part of this request's route, so the record is not shown to them at all.", "ops": [
+          {"op": "policy", "kind": "row", "text": "The regulatory approver cannot see the record.", "as": "ra.officer@livesgroup.com", "requester": "requestor@livesgroup.com", "domain": "CUSTOMER", "status": "SYNCED_TO_SAP", "expect": "hidden", "backed": "tests/test_security.py::test_regulatory_does_not_see_finance_request"}
+        ]},
+        {"who": "supervisor@livesgroup.com", "page": "waiting", "text": "The Supervisor tracks timing only. Private values are hidden entirely.", "ops": [
+          {"op": "policy", "text": "The Supervisor sees nothing of the bank account.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "BankAcct", "role": "SUPERVISOR", "status": "SYNCED_TO_SAP", "expect": "hidden", "backed": "tests/test_security.py::test_supervisor_row_access_is_metadata_only"}
+        ]},
+        {"who": "marcus@livesgroup.com", "page": "requests", "text": "Even the person who raised the request sees their own bank details masked once submitted: private values are write-only.", "ops": [
+          {"op": "policy", "text": "The requestor sees the bank account masked after submitting.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "BankAcct", "role": "REQUESTER", "status": "SYNCED_TO_SAP", "expect": "masked"}
+        ]}
+      ]
+    },
+    "R_IT": {
+      "label": "Role tour: IT / System Administrator",
+      "keep_data": true,
+      "steps": [
+        {"who": "it.admin@livesgroup.com", "page": "admin", "text": "The IT administrator changes how the platform works without touching code: approval routes, mandatory details, reminder times and who can do what.", "ops": [
+          {"op": "flag", "kind": "how", "text": "A new team joins. The IT administrator creates a role for it right here: no code and no file edits."},
+          {"op": "expand", "text": "Add an approval step"},
+          {"op": "type", "t": {"keyp": "adm_ap_label_"}, "value": "Regional Compliance Officer"},
+          {"op": "type", "t": {"keyp": "adm_ap_person_"}, "value": "Aiko Tan"},
+          {"op": "type", "t": {"keyp": "adm_ap_email_"}, "value": "aiko.tan@livesgroup.com"},
+          {"op": "type", "t": {"keyp": "adm_ap_deleg_"}, "value": "compliance.delegate@livesgroup.com"},
+          {"op": "flag", "kind": "how", "text": "Four fields make a role: its name, who holds it, their email, and a delegate who receives the work after the last reminder. Leave the emails blank and sensible ones are suggested."},
+          {"op": "click", "t": {"key": "adm_apply_approver"}},
+          {"op": "policy", "kind": "newrole", "label": "Regional Compliance Officer", "person": "Aiko Tan", "email": "aiko.tan@livesgroup.com", "delegate": "compliance.delegate@livesgroup.com", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "BankAcct", "expect": "hidden", "text": "A new role starts with least privilege: private bank details are hidden from it until an administrator decides otherwise."},
+          {"op": "flag", "kind": "security", "text": "The change applies at once and is written to the audit trail as a setting change, so there is a record of who created the role and when."},
+          {"op": "look", "t": {"any": "Who approves what. Change it here"}, "optional": true, "label": "Rules", "text": "Next, a rule. The workflow designer decides who approves what. An 'also require' rule adds an approver to any request whenever its condition is true. Here: customers with a credit limit over 20,000 also need the Business Unit Head."},
+          {"op": "click", "t": {"key": "wf_new_add"}},
+          {"op": "select", "t": {"keyp": "wf_q1_"}, "value": "Customer"},
+          {"op": "click", "t": {"keyp": "wf_addx_"}},
+          {"op": "select", "t": {"keyp": "wf_xf_"}, "value": "Credit Limit"},
+          {"op": "type", "t": {"keyp": "wf_xv_"}, "value": "20000"},
+          {"op": "flag", "kind": "how", "text": "Three questions: who is it for (customers), anything extra (credit limit more than 20000), and who approves."},
+          {"op": "select", "t": {"keyp": "wf_add_"}, "value": "Business Unit Head"},
+          {"op": "click", "t": {"keyp": "wf_addbtn_"}},
+          {"op": "click", "t": {"keyp": "wf_save_"}},
+          {"op": "look", "t": {"key": "wf_draftbar"}, "optional": true, "label": "Draft", "text": "The rule is only a draft. Nothing changes for anyone until the administrator applies it, and the draft says in plain words what would change."},
+          {"op": "click", "t": {"key": "wf_apply"}},
+          {"op": "policy", "kind": "rule", "domain": "CUSTOMER", "field": "CreditLine", "more_than": 20000, "step": "PENDING_BU_HEAD", "from": "scen.S2.payload", "text": "A customer with a 75,000 credit limit now also goes to the Business Unit Head, which it did not before the rule.", "no_screen": true},
+          {"op": "flag", "kind": "security", "text": "Applying the rule is checked, compared with what it replaces, and written to the audit trail. No file was edited and no code was written."},
+          {"op": "click", "t": {"text": "Request types"}},
+          {"op": "flag", "kind": "how", "text": "Choose which details are mandatory for each request type, or add a new request type."},
+          {"op": "click", "t": {"text": "Reminders and duplicates"}},
+          {"op": "flag", "kind": "how", "text": "Set when reminders go out and how strict the duplicate check is."},
+          {"op": "click", "t": {"text": "People and access"}},
+          {"op": "flag", "kind": "security", "text": "Role access is least privilege and is set here. Every change applies at once and is written to the audit trail.", "backed": "tests/test_security.py::test_role_access_is_least_privilege"},
+          {"op": "click", "t": {"text": "Changes"}},
+          {"op": "flag", "kind": "how", "text": "Every change can be undone, and the settings file can be downloaded."}
+        ]},
+        {"who": "it.admin@livesgroup.com", "page": "requests", "role": {"label": "Approver", "fn": "Regional Compliance Officer"}, "text": "The role just created already works. It appears in the role switch, and here is its own queue, empty until a route sends it a request.", "ops": []},
+        {"who": "it.admin@livesgroup.com", "page": "audit", "text": "The IT administrator can also read the audit trail, but sees no request data.", "ops": []}
+      ]
+    },
+    "R_PAY": {
+      "label": "Role tour: Payments Officer",
+      "keep_data": true,
+      "steps": [
+        {"who": "ap.officer@livesgroup.com", "page": "requests", "text": "The Payments Officer sees only approved records that carry bank details, and is the only role that sees full account numbers.", "ops": [
+          {"op": "policy", "text": "Before approval even the Payments Officer sees only the last four digits.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "BankAcct", "role": "PAYMENTS_OFFICER", "status": "PENDING_FINANCE", "expect": "masked", "no_screen": true},
+          {"op": "policy", "text": "After approval the full number is released to this role only, and the view is written to the audit trail.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "BankAcct", "role": "PAYMENTS_OFFICER", "status": "APPROVED", "expect": "full", "backed": "tests/test_security.py::test_payments_release_queue_only_approved_with_bank_details"},
+          {"op": "flag", "kind": "security", "text": "The same account number never travels by email: the email channel always shows it masked.", "backed": "tests/test_security.py::test_email_channel_never_exposes_bank_account"}
+        ]}
+      ]
+    },
+    "R_SUP": {
+      "label": "Role tour: Supervisor",
+      "keep_data": true,
+      "steps": [
+        {"who": "supervisor@livesgroup.com", "page": "waiting", "text": "The Supervisor spots requests that are stuck and receives the escalations.", "ops": [
+          {"op": "flag", "kind": "security", "text": "Metadata only: names and timings, never private field values.", "backed": "tests/test_security.py::test_supervisor_row_access_is_metadata_only"}
+        ]},
+        {"who": "supervisor@livesgroup.com", "page": "insights", "text": "The Supervisor also reads the regional sales insights.", "ops": []}
+      ]
+    },
+    "R_AUD": {
+      "label": "Role tour: Internal Auditor",
+      "keep_data": true,
+      "steps": [
+        {"who": "auditor@livesgroup.com", "page": "requests", "text": "The Internal Auditor can open every request and read it, read-only. Watch what the auditor sees of the private values today.", "ops": [
+          {"op": "click", "t": {"text": "Everything"}, "optional": true},
+          {"op": "flag", "kind": "how", "text": "Opening a customer request and scrolling down to its details, to see what the auditor can read of the private values."},
+          {"op": "reveal", "until": "tr[data-field=\"CreditLine\"]", "open": "Details"},
+          {"op": "wait", "ms": 700},
+          {"op": "policy", "kind": "row", "text": "The auditor can see every request.", "as": "auditor@livesgroup.com", "requester": "requestor@livesgroup.com", "domain": "CUSTOMER", "status": "PENDING_FINANCE", "expect": "visible", "backed": "tests/test_security.py::test_mdm_lead_and_auditor_see_all"},
+          {"op": "policy", "text": "Credit terms are masked for the auditor today.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "CreditLine", "role": "AUDITOR", "status": "APPROVED", "expect": "masked", "backed": "tests/test_security.py::test_financial_terms_redacted_for_auditor_and_hidden_for_regulatory"},
+          {"op": "policy", "text": "Bank details are masked too: the row is there but only the last four digits show. Masked is not the same as hidden, which would show no value at all.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "BankAcct", "role": "AUDITOR", "status": "APPROVED", "expect": "masked"},
+          {"op": "flag", "kind": "security", "text": "Auditors are read-only and see everything else in full. Which private values stay redacted is not fixed: the IT administrator decides who sees what. Let us change it."}
+        ]},
+        {"who": "it.admin@livesgroup.com", "page": "admin", "text": "Redaction is the IT administrator's call. Here they allow the auditor to see credit terms.", "ops": [
+          {"op": "click", "t": {"text": "People and access"}},
+          {"op": "look", "t": {"any": "Credit terms and bank details are redacted"}, "label": "Who sees what", "text": "Who sees private values: pick a role, pick a kind of private value, then choose Hidden, Masked or Full value for that role."},
+          {"op": "select", "t": {"key": "adm_sec_role"}, "value": "Internal Auditor"},
+          {"op": "select", "t": {"key": "adm_sec_class"}, "value": "Credit terms"},
+          {"op": "click", "t": {"inp": "adm_sec_level_", "text": "Full value", "exact": true}},
+          {"op": "flag", "kind": "how", "text": "Credit terms for the Internal Auditor: from Masked to Full value. One choice, then Apply."},
+          {"op": "click", "t": {"key": "adm_apply_security"}},
+          {"op": "policy", "kind": "fieldpolicy", "apply": {"class": "FINANCIAL_TERMS", "role": "AUDITOR", "level": "FULL"}, "text": "The setting takes effect straight away for that role only.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "CreditLine", "role": "AUDITOR", "status": "APPROVED", "expect": "full", "no_screen": true},
+          {"op": "flag", "kind": "security", "text": "The change is written to the audit trail as a setting change, with who made it and what changed. It can be undone from the Changes tab."}
+        ]},
+        {"who": "auditor@livesgroup.com", "page": "requests", "text": "Back as the auditor: the same request, now that the administrator has allowed it.", "ops": [
+          {"op": "click", "t": {"text": "Everything"}, "optional": true},
+          {"op": "flag", "kind": "how", "text": "Opening a customer request and scrolling down to its details, to see what the auditor can read of the private values."},
+          {"op": "reveal", "until": "tr[data-field=\"CreditLine\"]", "open": "Details"},
+          {"op": "wait", "ms": 700},
+          {"op": "policy", "kind": "fieldpolicy", "apply": {"class": "FINANCIAL_TERMS", "role": "AUDITOR", "level": "FULL"}, "text": "Credit terms are now shown in full to the auditor: not masked, not hidden.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "CreditLine", "role": "AUDITOR", "status": "APPROVED", "expect": "full"},
+          {"op": "policy", "text": "Bank details are still masked, not hidden: the row is there with only the last four digits. Only the one setting changed.", "from": "scen.S2.payload", "domain": "CUSTOMER", "field": "BankAcct", "role": "AUDITOR", "status": "APPROVED", "expect": "masked"}
+        ]},
+        {"who": "auditor@livesgroup.com", "page": "audit", "text": "The audit trail is chained: each entry carries a fingerprint of itself and of the one before it, and the setting change just made is in it.", "ops": [
+          {"op": "expand", "text": "See the check catch a change", "optional": true},
+          {"op": "click", "t": {"text": "Change one entry in a copy and check it"}, "optional": true},
+          {"op": "policy", "kind": "chain", "events": ["SUBMITTED", "ROUTED", "APPROVED", "SYNCED"], "text": "Changing one entry in a copy of the log is caught.", "backed": "tests/test_audit_chain.py::test_removing_inserting_or_reordering_is_caught"}
+        ]}
+      ]
+    }
+  }
+}

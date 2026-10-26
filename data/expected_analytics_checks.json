@@ -1,0 +1,39 @@
+{
+  "history_start": "2024-10-01",
+  "history_end_month": "2026-09-01",
+  "as_of": "2026-09-30",
+  "churners": [
+    "C10001",
+    "C10016",
+    "C10026"
+  ],
+  "churner_target_deltas": {
+    "C10001": -0.45,
+    "C10016": -0.5,
+    "C10026": -0.55
+  },
+  "near_threshold_decliners": [
+    "C10022",
+    "C10030"
+  ],
+  "decliner_target_deltas": {
+    "C10022": -0.15,
+    "C10030": -0.17
+  },
+  "cross_sell_gaps": [
+    "C10004",
+    "C10013",
+    "C10021",
+    "C10027",
+    "C10032"
+  ],
+  "short_history_customers": [
+    "C10009"
+  ],
+  "short_series": {
+    "U_Entity": "QTG",
+    "U_Country": "VN",
+    "U_ProductLine": "C",
+    "months": 10
+  }
+}

@@ -1,0 +1,405 @@
+{
+  "S1": {
+    "id": "S1",
+    "title": "Amy's Incomplete Lab Consumable Request",
+    "source": "Appendix B & C",
+    "persona_email": "amy@livesgroup.com",
+    "domain": "ITEM",
+    "payload": {
+      "ItemName": "Lab Consumable Diagnostic Reagent",
+      "ItmsGrpCod": 101,
+      "U_Category": "IVD",
+      "InvntryUom": "Box",
+      "U_RegLicenseNo": "",
+      "U_Entity": "SPD",
+      "LastPurPrc": 85.0
+    },
+    "fix": {
+      "U_RegLicenseNo": "HSA-IVD-2026-0881"
+    },
+    "expected": {
+      "errors": [
+        "VALIDATION BLOCKED: Regulatory License No (U_RegLicenseNo) is MANDATORY for IVD items."
+      ],
+      "after_fix_rule_id": "R04",
+      "after_fix_status": "PENDING_REGULATORY",
+      "visible_to": [
+        "REGULATORY_OFFICER"
+      ],
+      "not_visible_to": [
+        "FINANCE_APPROVER"
+      ]
+    },
+    "comparison": {
+      "old_way": "18-day email bounce-back",
+      "new_way": "blocked in 0 seconds"
+    }
+  },
+  "S2": {
+    "id": "S2",
+    "title": "Wei Jie's Overlooked High-Credit Customer",
+    "source": "Appendix B",
+    "persona_email": "marcus@livesgroup.com",
+    "approver_email": "weijie@livesgroup.com",
+    "release_email": "ap.officer@livesgroup.com",
+    "domain": "CUSTOMER",
+    "payload": {
+      "CardName": "SMU Solutions",
+      "LicTradNum": "201912345Z",
+      "GroupCode": 100,
+      "E_Mail": "procurement@smusolutions.example",
+      "CreditLine": 75000,
+      "GroupNum": 3,
+      "BankCode": "Example Bank",
+      "BankAcct": "0123456789",
+      "SwiftCode": "EXMPSGSG",
+      "U_Entity": "QTS",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com",
+      "Address": "88 Example Street",
+      "ZipCode": "238888",
+      "CntctPrsn": "Alex Tan",
+      "Phone1": "+65 6123 4567"
+    },
+    "expected": {
+      "resolved_name": "singapore management university solutions",
+      "flagged": false,
+      "rule_id": "R03",
+      "status": "PENDING_FINANCE",
+      "full_bank_account_only_for": "PAYMENTS_OFFICER",
+      "full_bank_account_only_in_states": [
+        "APPROVED",
+        "SYNCED_TO_SAP"
+      ]
+    }
+  },
+  "S3": {
+    "id": "S3",
+    "title": "Priya's Duplicate National University Hospital",
+    "source": "Appendix B & Section 4",
+    "persona_email": "marcus@livesgroup.com",
+    "reviewer_email": "priya@livesgroup.com",
+    "domain": "CUSTOMER",
+    "existing_code": "C10023",
+    "base_payload": {
+      "CardName": "NUHS",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "ap@nuhs-demo.example",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com",
+      "Address": "88 Example Street",
+      "ZipCode": "238888",
+      "CntctPrsn": "Alex Tan",
+      "Phone1": "+65 6123 4567"
+    },
+    "variants": {
+      "3a": {
+        "id": "3a",
+        "description": "Nat. Uni. Hospital Singapore, corporate email",
+        "payload": {
+          "CardName": "Nat. Uni. Hospital Singapore",
+          "LicTradNum": "202600777K",
+          "GroupCode": 100,
+          "E_Mail": "ap@nuhs-demo.example",
+          "CreditLine": 20000.0,
+          "GroupNum": 1,
+          "U_Entity": "SPD",
+          "U_Country": "SG",
+          "U_Requester": "marcus@livesgroup.com",
+          "Address": "88 Example Street",
+          "ZipCode": "238888",
+          "CntctPrsn": "Alex Tan",
+          "Phone1": "+65 6123 4567"
+        },
+        "expected": {
+          "matches": {
+            "C10023": {
+              "flagged": true,
+              "match_basis": "ALIAS_EXPANDED",
+              "tier": "CONFIRMED"
+            }
+          },
+          "dup_review_required": true
+        }
+      },
+      "3b": {
+        "id": "3b",
+        "description": "NUHS, corporate email",
+        "payload": {
+          "CardName": "NUHS",
+          "LicTradNum": "202600777K",
+          "GroupCode": 100,
+          "E_Mail": "ap@nuhs-demo.example",
+          "CreditLine": 20000.0,
+          "GroupNum": 1,
+          "U_Entity": "SPD",
+          "U_Country": "SG",
+          "U_Requester": "marcus@livesgroup.com",
+          "Address": "88 Example Street",
+          "ZipCode": "238888",
+          "CntctPrsn": "Alex Tan",
+          "Phone1": "+65 6123 4567"
+        },
+        "expected": {
+          "matches": {
+            "C10023": {
+              "flagged": true,
+              "match_basis": "ALIAS_EXPANDED",
+              "tier": "CONFIRMED"
+            }
+          },
+          "dup_review_required": true
+        }
+      },
+      "3c": {
+        "id": "3c",
+        "description": "National University of Singapore (negative control vs the hospital)",
+        "payload": {
+          "CardName": "National University of Singapore",
+          "LicTradNum": "202600777K",
+          "GroupCode": 100,
+          "E_Mail": "procurement@nus-demo.example",
+          "CreditLine": 20000.0,
+          "GroupNum": 1,
+          "U_Entity": "SPD",
+          "U_Country": "SG",
+          "U_Requester": "marcus@livesgroup.com",
+          "Address": "88 Example Street",
+          "ZipCode": "238888",
+          "CntctPrsn": "Alex Tan",
+          "Phone1": "+65 6123 4567"
+        },
+        "expected": {
+          "matches": {
+            "C10023": {
+              "flagged": false
+            },
+            "C10031": {
+              "flagged": true,
+              "match_basis": "FUZZY",
+              "tier": "CONFIRMED"
+            }
+          },
+          "dup_review_required": true
+        }
+      },
+      "3d": {
+        "id": "3d",
+        "description": "NUHS, free-mail address only",
+        "payload": {
+          "CardName": "NUHS",
+          "LicTradNum": "202600777K",
+          "GroupCode": 100,
+          "E_Mail": "someone@gmail.com",
+          "CreditLine": 20000.0,
+          "GroupNum": 1,
+          "U_Entity": "SPD",
+          "U_Country": "SG",
+          "U_Requester": "marcus@livesgroup.com",
+          "Address": "88 Example Street",
+          "ZipCode": "238888",
+          "CntctPrsn": "Alex Tan",
+          "Phone1": "+65 6123 4567"
+        },
+        "expected": {
+          "matches": {
+            "C10023": {
+              "flagged": true,
+              "match_basis": "ALIAS_EXPANDED",
+              "tier": "UNCONFIRMED"
+            }
+          },
+          "dup_review_required": true
+        }
+      },
+      "3e": {
+        "id": "3e",
+        "description": "NUHS from another company in Malaysia",
+        "payload": {
+          "CardName": "NUHS",
+          "LicTradNum": "202600777K",
+          "GroupCode": 102,
+          "E_Mail": "buyer@healthsupplies.example",
+          "CreditLine": 20000.0,
+          "GroupNum": 1,
+          "U_Entity": "SPD",
+          "U_Country": "MY",
+          "U_Requester": "marcus@livesgroup.com",
+          "Address": "88 Example Street",
+          "ZipCode": "238888",
+          "CntctPrsn": "Alex Tan",
+          "Phone1": "+65 6123 4567"
+        },
+        "expected": {
+          "matches": {
+            "C10023": {
+              "flagged": true,
+              "match_basis": "ALIAS_EXPANDED",
+              "tier": "CONTRADICTED"
+            }
+          },
+          "dup_review_required": false
+        }
+      },
+      "3f": {
+        "id": "3f",
+        "description": "NUHS, free mail, postal code and contact person",
+        "payload": {
+          "CardName": "NUHS",
+          "LicTradNum": "202600777K",
+          "GroupCode": 100,
+          "E_Mail": "someone@gmail.com",
+          "CreditLine": 20000.0,
+          "GroupNum": 1,
+          "U_Entity": "SPD",
+          "U_Country": "SG",
+          "U_Requester": "marcus@livesgroup.com",
+          "Address": "88 Example Street",
+          "ZipCode": "119999",
+          "CntctPrsn": "Mei Ling Lim",
+          "Phone1": "+65 6123 4567"
+        },
+        "expected": {
+          "matches": {
+            "C10023": {
+              "flagged": true,
+              "match_basis": "ALIAS_EXPANDED",
+              "tier": "CONFIRMED"
+            }
+          },
+          "dup_review_required": true
+        }
+      },
+      "3g": {
+        "id": "3g",
+        "description": "NUHS, free mail, tax ID one digit off",
+        "payload": {
+          "CardName": "NUHS",
+          "LicTradNum": "198400001X",
+          "GroupCode": 100,
+          "E_Mail": "someone@gmail.com",
+          "CreditLine": 20000.0,
+          "GroupNum": 1,
+          "U_Entity": "SPD",
+          "U_Country": "SG",
+          "U_Requester": "marcus@livesgroup.com",
+          "Address": "88 Example Street",
+          "ZipCode": "238888",
+          "CntctPrsn": "Alex Tan",
+          "Phone1": "+65 6123 4567"
+        },
+        "expected": {
+          "matches": {
+            "C10023": {
+              "flagged": true,
+              "match_basis": "ALIAS_EXPANDED",
+              "tier": "CONFIRMED"
+            }
+          },
+          "dup_review_required": true
+        }
+      },
+      "3h": {
+        "id": "3h",
+        "description": "NUHS, corporate email but Malaysia / distributor group",
+        "payload": {
+          "CardName": "NUHS",
+          "LicTradNum": "202600777K",
+          "GroupCode": 102,
+          "E_Mail": "ap@nuhs-demo.example",
+          "CreditLine": 20000.0,
+          "GroupNum": 1,
+          "U_Entity": "SPD",
+          "U_Country": "MY",
+          "U_Requester": "marcus@livesgroup.com",
+          "Address": "88 Example Street",
+          "ZipCode": "238888",
+          "CntctPrsn": "Alex Tan",
+          "Phone1": "+65 6123 4567"
+        },
+        "expected": {
+          "matches": {
+            "C10023": {
+              "flagged": true,
+              "match_basis": "ALIAS_EXPANDED",
+              "tier": "UNCONFIRMED"
+            }
+          },
+          "dup_review_required": true
+        }
+      }
+    }
+  },
+  "S4": {
+    "id": "S4",
+    "title": "Marcus's Misrouted New Business Unit Request",
+    "source": "Appendix B",
+    "persona_email": "marcus@livesgroup.com",
+    "domain": "COST_CENTER",
+    "payload": {
+      "PrcCode": "CC-9001",
+      "PrcName": "New BU Regional Direct",
+      "U_Entity": "QTG",
+      "U_BudgetMgr": "marcus@livesgroup.com"
+    },
+    "expected": {
+      "valid": true,
+      "flagged": false,
+      "rule_id": "R99",
+      "status": "PENDING_MDM",
+      "visible_to": [
+        "MDM_LEAD"
+      ],
+      "not_visible_to": [
+        "FINANCE_APPROVER",
+        "REGULATORY_OFFICER"
+      ]
+    }
+  },
+  "S5": {
+    "id": "S5",
+    "title": "The 18-Day Bottleneck Simulator",
+    "source": "Appendix C",
+    "persona_email": "supervisor@livesgroup.com",
+    "secondary_emails": [
+      "weijie@livesgroup.com",
+      "priya@livesgroup.com"
+    ],
+    "uses_scenario": "S2",
+    "start_state": "PENDING_FINANCE",
+    "slider_days": [
+      0,
+      2,
+      4,
+      8,
+      18
+    ],
+    "expected": {
+      "fired_by_day": {
+        "0": [],
+        "2": [
+          "SEND_HIGH_PRIORITY_EMAIL"
+        ],
+        "4": [
+          "SEND_HIGH_PRIORITY_EMAIL",
+          "CREATE_CALENDAR_INVITE"
+        ],
+        "8": [
+          "SEND_HIGH_PRIORITY_EMAIL",
+          "CREATE_CALENDAR_INVITE",
+          "AUTO_REASSIGN_TO_DELEGATE"
+        ],
+        "18": [
+          "SEND_HIGH_PRIORITY_EMAIL",
+          "CREATE_CALENDAR_INVITE",
+          "AUTO_REASSIGN_TO_DELEGATE"
+        ]
+      },
+      "without_engine_day_18": "still unseen"
+    }
+  }
+}

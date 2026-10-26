@@ -1,0 +1,259 @@
+LIVES GROUP MDM PLATFORM - HANDOVER BRIEF: INTERFACE POLISH PASS
+==================================================================
+
+Written: 26 Oct 2026, for the Wed 28 Oct 2026 12:00 SGT submission.
+Covers: everything changed in the working session AFTER the earlier brief, docs/HANDOVER.md.
+That earlier brief still describes the features (Help guide, audit chain, new approver,
+domain builder). Read it first; this file only records what changed since.
+
+All paths below are relative to the project folder lives-mdm-platform.
+
+
+1. READ THIS FIRST
+------------------
+
+- The automated suite passes: pytest -q gives 1,304 passed. No test was edited or removed.
+- Most changes are presentation (CSS and wording). Business rules and config_rules.json
+  were NOT changed.
+- Changes were looked at in the in-app browser, mainly as the Requestor and IT admin roles,
+  at 800 px and 1280 px wide (and 500 px for the phone-width fix).
+- Things nobody has looked at after the change (please check by eye):
+  a) The new confirmation toasts (submit, approve, reject, email-approve). They run in code
+     and the tests pass, but no one saw them on screen.
+  b) The Platform settings page after its banner and "Held by" edits.
+  c) The footer line at the bottom of every page.
+  d) Every role other than Requestor and IT admin (Approver, MDM Analyst, Payments Officer,
+     Supervisor, Auditor), especially Home tiles that have the extra "late" line.
+  e) The Vendor, Item and Cost center forms (only the Customer form was checked for the
+     Finance details hover note).
+- A full backup of the project BEFORE this pass exists next to the project folder:
+  lives-mdm-platform_BACKUP_before_polish (source only, no .venv). Do not delete it until
+  the review is done. See section 6 for how to restore.
+
+
+2. ENVIRONMENT AND HOUSEKEEPING
+-------------------------------
+
+2.1 The .venv was rebuilt
+    What: deleted the old .venv and recreated it with Python 3.13 and requirements.txt.
+    Why:  the zipped copy lost file permissions and symlinks (the python files were 10-byte
+          text files and nothing in .venv/bin was executable), and pyvenv.cfg pointed at an
+          old folder (Downloads/lives-mdm-platform). A virtual environment cannot be moved
+          or copied, only rebuilt.
+    Check: streamlit 1.66.1 imports; pytest and tools/check_config.py pass.
+
+2.2 Folder permissions
+    What: made the project folder, its docs folder and the Hackathon Files folder writable
+          (chmod u+w).
+    Why:  the unzipped folders were read-only, which blocked deleting the old .venv, making
+          the backup and writing new files.
+
+2.3 New files added
+    - docs/FEATURES.md                - point-form walkthrough of every feature.
+    - docs/HANDOVER_POLISH_PASS.txt   - this brief.
+    - ../lives-mdm-platform_BACKUP_before_polish/  - the backup.
+
+2.4 How to run
+    cd ~/Downloads/"Hackathon Files"/lives-mdm-platform
+    .venv/bin/python -m streamlit run app.py
+    (Settings and CSS are cached by the server: restart it after editing tabs/ui.py.)
+    Note: do not run the app with the system python; streamlit is only in .venv.
+
+
+3. WHAT CHANGED, AND WHY
+------------------------
+
+3.1 TOP NAVIGATION - show every page, no "N more" menu           (tabs/ui.py)
+    Change: the page row now shows all pages and scrolls sideways when they do not fit.
+            Links snap to the left edge so none is left half cut off. The row is given a
+            minimum width so the IT admin's four pages fit on a laptop screen.
+    Why:    Streamlit hides pages behind a "2 more" popover when the row is crowded. The
+            user did not like the hidden pages.
+    How:    CSS override of Streamlit's own "rc-overflow" markup (opacity, position and
+            display of its items; scroll snap; flex and min-width on the nav).
+    Tried and removed: a fade/arrow hint and then a grey shadow at the right edge to show
+            that the row scrolls. The user found both unattractive, so they were removed.
+            Nothing now signals that the row scrolls; at normal laptop widths every page
+            fits so it is not needed.
+    Caveat: this depends on Streamlit's internal element names (data-testid="stTopNav" and
+            the rc-overflow classes). A Streamlit upgrade could break it. The app is
+            pinned to streamlit==1.66.1.
+
+3.2 NARROW SCREENS - the ">>" button did nothing                  (tabs/ui.py)
+    Change: the sidebar is now hidden only while the top navigation is showing.
+            The sidebar (which holds the page list on narrow screens) gets top padding so
+            the Role / Stories / Help bar does not cover the first link.
+    Why:    below a certain width Streamlit moves the page links into a sidebar. The app's
+            CSS hid the sidebar at ALL widths, so the ">>" opener had nothing to open.
+    Verified: at 500 px wide the button opens Home / New request / Requests and a link
+            navigates.
+
+3.3 FINANCE DETAILS - (i) hover note                              (tabs/tab_intake.py, tabs/ui.py)
+    Change: an (i) icon sits at the right end of the "Finance details: credit, terms and
+            banking" bar. Hovering (or tabbing to) it shows: "These are private. They are
+            needed before the request can be sent." If none of the finance fields are
+            required it says "These are private. They are optional here."
+            The old always-visible caption inside the section was removed.
+    Why:    requested wording, shown only on hover to keep the form short.
+    Note:   the old caption also said "Each person only sees what their role needs". That
+            sentence no longer appears anywhere.
+    How:    pure CSS tooltip; the (i) is placed over the expander header with a keyed
+            container (finance_box).
+
+3.4 HOME - tiles                                                  (tabs/ui.py, tabs/tab_home.py)
+    Change: tile contents are centred; the number is bold and coloured; each tile is a
+            white card with a coloured bar on top and a soft shadow (was a fully tinted
+            pastel box with a coloured border). Rows with fewer than three tiles keep the
+            tile width of a three-tile row (they no longer stretch). An empty tile says
+            "Nothing here". Tiles lift slightly on hover.
+    Why:    the user thought the tinted boxes looked unprofessional. The cause was the thin
+            light-weight number plus alert-banner-style colouring. White cards with an
+            accent are the usual dashboard look.
+    Known cosmetic issue: a tile with the extra "N over 2 days" line and "Only the late
+            ones" button is taller than its neighbours. An attempt to equalise heights did
+            not work and was reverted (it also faded the top bars).
+
+3.5 HOME - rest of the page                                       (tabs/tab_home.py)
+    - "Next step" button for "See waiting times" is now the calm outline style (it did not
+      need action).
+    - "Recent activity" rows are two lines (title and status pill, then date and
+      who-did-what) instead of one crowded line.
+
+3.6 REQUESTS PAGE                                                 (tabs/tab_inbox.py, tabs/common.py)
+    - Each request card starts collapsed under "Details, history and email". It opens by
+      itself when the viewer must decide it, or when only one request is listed.
+      Why: the full table on every card made the list hard to scan.
+    - In the details table the technical status row (U_ReqStatus) is hidden (the status is
+      already a pill above) and U_Requester is shown as "Requested by" with a plain name.
+      Why: SAP field names looked unfinished next to normal fields.
+    - The "Over N days only" checkbox sits closer to the filter tabs.
+    - Toast wording (see 3.12).
+
+3.7 AUDIT TRAIL                                                   (tabs/tab_audit.py, tabs/ui.py)
+    Change: the table on screen now shows dates as "25 Oct 2026, 16:50", roles as "IT
+            admin" and "System", statuses by their plain names, and the Detail column as a
+            sentence (for example "Switched from Requestor to IT admin") instead of raw
+            JSON. The table is laid out for a wider page, so rows are shorter.
+    Why:    this is the page a reviewer opens to judge trust, and raw JSON, microsecond
+            timestamps and codes such as IT_ADMIN looked unfinished.
+    Safety: the stored audit entries, the hash chain, the filters and the CSV download are
+            unchanged. The CSV still has the raw stored values. Only the on-screen table
+            is reworded.
+    Caveat: row height is still set by the longest cell, so rows are taller than ideal.
+    Code:   tab_audit.py has audit_frame(audit_log, config=None) (words when a config is
+            passed, raw when not) and detail_text(); ui.table now accepts page_px.
+
+3.8 PLATFORM SETTINGS                                             (tabs/tab_admin.py)
+    - The long blue banner is now one sentence: "Changes apply straight away and last for
+      this session. Each one is written to the audit trail."
+      (The old text also said "Download the rules to keep them"; that is still possible
+      from the Changes tab.)
+    - Approval steps table, "Held by" column: shows people by name, or "Anyone in this
+      role", instead of repeating each role's demo logins ("Wei Jie, Approver (Finance)").
+
+3.9 HEADER                                                        (app.py, tabs/ui.py)
+    - Role / Case Synopsis stories / Help buttons are smaller and lighter, so the demo
+      controls do not compete with the real navigation.
+    - The Role button shows short names (for example "IT admin" for "IT / System
+      Administrator"). The full name is used everywhere else. The short names live in
+      ui.SHORT_ROLES (presentation only).
+    - A small blue logo mark sits left of "Lives Group MDM" (an SVG drawn in the
+      stylesheet, no image file).
+
+3.10 SITE-WIDE
+    - One card style: bordered containers share the same corner radius and border colour.
+    - Footer line on every page: "Prototype with demo data. SAP and Outlook are
+      simulated." (one quiet line, so the disclaimer is not repeated on every page).
+    - Hover states: Home tiles and the New request type cards lift slightly; the type
+      card border turns blue.
+
+3.11 NEW DEMO REQUEST THAT HAS ALREADY WAITED 3 DAYS             (data/demo_seed.json, tabs/demo_data.py)
+    Change: the seeded "Rapid Test Cassette, COVID/Flu, 25 pack" request (waiting at
+            Quality / Regulatory Affairs Officer) carries "days_waiting": 3. After seeding,
+            demo_data._age() moves its created, pending-since and history timestamps back
+            3 days.
+    Why:    the "N over 2 days" amber line, the "Only the late ones" button and the "Over 2
+            days only" filter were built but never visible, because every seeded request
+            was "just now". Now they show.
+    What it means: Requestor Home shows "1 over 2 days" on the "With others" tile;
+            clicking "Only the late ones" opens Requests with the box already ticked.
+    Caveat: only the request and its history are back-dated. Audit trail entries for it
+            still carry today's date. Reset demo brings it back.
+
+3.12 CONFIRMATION TOASTS                                          (tabs/tab_intake.py, tabs/tab_inbox.py)
+    - Submit: "Request REQ-... sent for approval."
+    - Approve: "<name> approved. Now: Waiting for <role>."  Reject: "<name> rejected and
+      sent back to the requester."  Approve from the simulated email: "<name> approved
+      from the email. Now: ..."
+    - Before, approve/reject toasts read like "REQ-123: APPROVE -> PENDING_MDM".
+    - Toasts for creating a record in SAP and for changing a setting already existed and
+      are unchanged.
+    Not seen on screen (see section 1).
+
+
+4. FILES TOUCHED
+----------------
+
+  app.py                    header Role label, footer line
+  tabs/ui.py                nearly all CSS changes, SHORT_ROLES, table page_px
+  tabs/common.py            Requests detail table (hide/relabel rows)
+  tabs/tab_home.py          tiles, Next step button, recent activity
+  tabs/tab_inbox.py         collapsed cards, filter placement, toast wording
+  tabs/tab_intake.py        Finance details (i), submit toast
+  tabs/tab_audit.py         readable audit table
+  tabs/tab_admin.py         banner, Held by
+  tabs/demo_data.py         _age() for back-dated seed
+  data/demo_seed.json       days_waiting on one request
+  docs/FEATURES.md          new
+  docs/HANDOVER_POLISH_PASS.txt   new (this file)
+
+Not touched: config_rules.json, the engines (engine_*.py), m365_integration.py,
+tests/, requirements.txt.
+
+
+5. WHAT HAS AND HAS NOT BEEN CHECKED
+------------------------------------
+
+Checked:
+  - pytest -q: 1,304 passed, after each group of edits.
+  - Browser look at: Home (Requestor and IT admin), Requests, New request (Finance
+    details hover), Audit trail, Platform settings (before the banner edit), the 500 px
+    phone-width menu, the Role switcher, the header logo, tile hover, and the late-request
+    shortcut (Home button to Requests with the box ticked).
+
+Not checked: see section 1 (toasts, Platform settings and footer after the edits, other
+roles, the other three request forms).
+
+Documents NOT updated for this pass: docs/demo_video_script.md, the 2-page summary
+(.docx), executive_summary.md and docs/HANDOVER.md. Screens they describe still work, but
+the layout they show has changed (tile style, header, Audit trail wording). Re-read them
+before recording the video.
+
+
+6. HOW TO UNDO THIS PASS
+------------------------
+
+The backup is the project as it was just before this pass (it still has the earlier
+features). To restore on macOS, from the folder that holds both:
+
+  rsync -a --delete --exclude .venv --exclude .git \
+        lives-mdm-platform_BACKUP_before_polish/ lives-mdm-platform/
+
+There is no git history, so copy the current folder somewhere first. Then run pytest -q and
+python tools/check_config.py. To undo only one item, the sections above name the file and
+the rule to revert (most are a few CSS lines in tabs/ui.py).
+
+
+7. FOR AN AI AGENT
+------------------
+
+- Read CLAUDE.md and CONTRACTS.md, and docs/HANDOVER.md section 8, first.
+- Do not change a test to make it pass.
+- Keep every record value going through engine_security.apply_field_security().
+- CSS lives in one string in tabs/ui.py inside a Python string: a backslash escape such as
+  "\203A" is read by Python as an octal escape. Write "\\203A" (this bit once).
+- Streamlit caches the stylesheet and rules per server process; restart the server to see
+  CSS changes.
+- On this machine the unzipped folders arrived read-only; use chmod u+w on a folder before
+  writing a new file in it.
+- The Streamlit port used in this session was 8501.

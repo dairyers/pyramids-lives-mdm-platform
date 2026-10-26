@@ -1,0 +1,428 @@
+{
+  "meta": {"config_version": "3.0", "currency": "USD", "timezone": "Asia/Singapore", "demo_mode": true},
+
+  "messages": {
+    "required": "VALIDATION BLOCKED: {label} ({field}) is required.",
+    "required_if": "VALIDATION BLOCKED: {label} ({field}) is MANDATORY for {dep_value} items.",
+    "invalid_format": "VALIDATION BLOCKED: {label} ({field}) has an invalid format.",
+    "invalid_option": "VALIDATION BLOCKED: {label} ({field}) must be one of {options}.",
+    "min_len": "VALIDATION BLOCKED: {label} ({field}) must be at least {min_len} characters.",
+    "min_value": "VALIDATION BLOCKED: {label} ({field}) must be at least {min}.",
+    "not_number": "VALIDATION BLOCKED: {label} ({field}) must be a valid number."
+  },
+
+  "enum_labels": {
+    "GroupCode": {"100": "Hospitals & Public Sector", "101": "Private Clinics & Labs", "102": "Distributors"},
+    "ItmsGrpCod": {"100": "Equipment", "101": "IVD Reagents & Kits", "102": "Consumables"},
+    "GroupNum": {"-1": "Cash on Delivery", "1": "Net 30", "2": "Net 60", "3": "Net 90"}
+  },
+
+  "domains": {
+    "CUSTOMER": {
+      "sap_table": "OCRD", "card_type": "C", "key_field": "CardCode", "record_name_field": "CardName",
+      "fields": [
+        {"field": "CardCode", "label": "Customer Code", "type": "string", "required": false, "regex": "^C[0-9]{5}$"},
+        {"field": "CardName", "label": "Company Name", "type": "string", "required": true, "min_len": 3},
+        {"field": "LicTradNum", "label": "Tax / GST Registration No", "type": "string", "required": true, "regex": "^[A-Z0-9]{8,15}$"},
+        {"field": "GroupCode", "label": "Customer Group", "type": "enum", "required": true, "options": [100, 101, 102]},
+        {"field": "E_Mail", "label": "Contact Email", "type": "string", "required": true, "regex": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"},
+        {"field": "U_GSTRegNo", "label": "GST Registration No", "type": "string", "required": false, "regex": "^[A-Z0-9-]{8,15}$", "form_hidden": true, "same_as": "LicTradNum"},
+        {"field": "Address", "label": "Street Address", "type": "string", "required": true, "min_len": 5},
+        {"field": "ZipCode", "label": "Postal Code", "type": "string", "required": true, "regex": "^[0-9A-Z -]{4,10}$"},
+        {"field": "CntctPrsn", "label": "Contact Person", "type": "string", "required": true, "min_len": 3},
+        {"field": "Phone1", "label": "Phone", "type": "string", "required": true, "regex": "^[0-9+() -]{7,20}$"},
+        {"field": "CreditLine", "label": "Credit Limit (USD)", "type": "float", "required": true, "min": 0.0, "security_class": "FINANCIAL_TERMS"},
+        {"field": "GroupNum", "label": "Payment Terms", "type": "enum", "required": true, "options": [-1, 1, 2, 3], "security_class": "FINANCIAL_TERMS"},
+        {"field": "BankCode", "label": "Refund Bank Name", "type": "string", "required": false, "security_class": "BANK_DETAILS"},
+        {"field": "BankAcct", "label": "Refund Bank Account No", "type": "string", "required": false, "regex": "^[0-9]{6,20}$", "security_class": "BANK_DETAILS"},
+        {"field": "SwiftCode", "label": "SWIFT / BIC Code", "type": "string", "required": false, "regex": "^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$", "security_class": "BANK_DETAILS"},
+        {"field": "U_Entity", "label": "Business Entity", "type": "enum", "required": true, "options": ["SPD", "QTS", "QTG"]},
+        {"field": "U_Country", "label": "Country Location", "type": "enum", "required": true, "options": ["SG", "MY", "TH", "ID", "VN"]}
+      ]
+    },
+    "VENDOR": {
+      "sap_table": "OCRD", "card_type": "S", "key_field": "CardCode", "record_name_field": "CardName",
+      "fields": [
+        {"field": "CardCode", "label": "Vendor Code", "type": "string", "required": false, "regex": "^V[0-9]{5}$"},
+        {"field": "CardName", "label": "Vendor Name", "type": "string", "required": true, "min_len": 3},
+        {"field": "LicTradNum", "label": "Tax / VAT ID", "type": "string", "required": true, "regex": "^[A-Z0-9]{8,15}$"},
+        {"field": "Address", "label": "Street Address", "type": "string", "required": true, "min_len": 5},
+        {"field": "ZipCode", "label": "Postal Code", "type": "string", "required": true, "regex": "^[0-9A-Z -]{4,10}$"},
+        {"field": "CntctPrsn", "label": "Contact Person", "type": "string", "required": true, "min_len": 3},
+        {"field": "Phone1", "label": "Phone", "type": "string", "required": true, "regex": "^[0-9+() -]{7,20}$"},
+        {"field": "BankCode", "label": "Bank Name", "type": "string", "required": true, "security_class": "BANK_DETAILS"},
+        {"field": "BankAcct", "label": "Bank Account No", "type": "string", "required": true, "regex": "^[0-9]{6,20}$", "security_class": "BANK_DETAILS"},
+        {"field": "SwiftCode", "label": "SWIFT / BIC Code", "type": "string", "required": true, "regex": "^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$", "security_class": "BANK_DETAILS"},
+        {"field": "GroupNum", "label": "Payment Terms", "type": "enum", "required": true, "options": [-1, 1, 2, 3], "security_class": "FINANCIAL_TERMS"},
+        {"field": "U_Entity", "label": "Business Entity", "type": "enum", "required": true, "options": ["SPD", "QTS", "QTG"]}
+      ]
+    },
+    "ITEM": {
+      "sap_table": "OITM", "key_field": "ItemCode", "record_name_field": "ItemName",
+      "fields": [
+        {"field": "ItemCode", "label": "Item Code", "type": "string", "required": false},
+        {"field": "ItemName", "label": "Item Description", "type": "string", "required": true, "min_len": 5},
+        {"field": "ItmsGrpCod", "label": "Item Group", "type": "enum", "required": true, "options": [100, 101, 102]},
+        {"field": "U_Category", "label": "Product Category", "type": "enum", "required": true, "options": ["IVD", "Equipment", "Consumable"]},
+        {"field": "InvntryUom", "label": "Inventory UoM", "type": "enum", "required": true, "options": ["Box", "Pack", "Unit", "Kit"]},
+        {"field": "U_RegLicenseNo", "label": "Regulatory License No", "type": "string", "required_if": {"U_Category": ["IVD", "Consumable"]}},
+        {"field": "U_Entity", "label": "Business Entity", "type": "enum", "required": true, "options": ["SPD", "QTS", "QTG"]},
+        {"field": "LastPurPrc", "label": "Estimated Unit Cost (USD)", "type": "float", "required": true, "min": 0.01, "security_class": "FINANCIAL_TERMS"}
+      ]
+    },
+    "COST_CENTER": {
+      "sap_table": "OOCR", "key_field": "PrcCode", "record_name_field": "PrcName",
+      "fields": [
+        {"field": "PrcCode", "label": "Cost Center Code", "type": "string", "required": true, "regex": "^CC-[0-9]{4}$"},
+        {"field": "PrcName", "label": "Cost Center Name", "type": "string", "required": true, "min_len": 3},
+        {"field": "U_Entity", "label": "Business Entity", "type": "enum", "required": true, "options": ["SPD", "QTS", "QTG"]},
+        {"field": "U_BudgetMgr", "label": "Budget Manager Email", "type": "string", "required": true, "regex": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"}
+      ]
+    }
+  },
+
+  "deduplication_rules": {
+    "OCRD": {
+      "compare_field": "CardName",
+      "match_same_card_type_only": true,
+      "exact_match_fields": ["LicTradNum"],
+      "exact_match_policy": "HARD_BLOCK",
+      "similarity_threshold": 0.70,
+      "weights": {"token_set": 0.6, "jaro_winkler": 0.4},
+      "related_review": {
+        "enabled": true,
+        "min_score": 0.50,
+        "max_results": 3,
+        "require_alias_expansion": true,
+        "verdict_text": {
+          "CONFIRMED": "Other details also match, so this may be the same organisation.",
+          "UNCONFIRMED": "The name is close but the other details only partly match.",
+          "CONTRADICTED": "The name is close but other details point to a different organisation."
+        }
+      },
+      "corroboration": {
+        "enabled": true,
+        "apply_to_match_basis": ["ALIAS_EXPANDED"],
+        "default_tier_otherwise": "CONFIRMED",
+        "free_email_domains": ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "proton.me"],
+        "quorum": {"min_agreeing_groups": 2, "min_non_weak_groups": 1, "contradiction_min_conflicts": 1, "ambiguity_win_margin": 1},
+        "text_match": {
+          "tax_id_max_edit_distance": 1, "tax_id_min_len": 8,
+          "address_min_similarity": 0.85, "address_min_tokens": 3,
+          "address_token_map": {"rd": "road", "st": "street", "ave": "avenue", "blk": "block", "dr": "drive", "lor": "lorong", "jln": "jalan"},
+          "person_min_similarity": 0.85, "person_min_tokens": 2,
+          "person_title_words": ["mr", "mrs", "ms", "mdm", "dr", "prof"],
+          "phone_compare_last_digits": 8
+        },
+        "detail_visible_roles": ["REQUESTER", "MDM_LEAD", "AUDITOR"],
+        "signals": [
+          {"id": "TAX_ID_NEAR_MATCH", "label": "Tax ID differs by a typo only", "group": "TAX_ID", "strength": "STRONG", "weight": 0.50,
+           "kind": "near_match", "candidate_field": "LicTradNum", "existing_field": "LicTradNum"},
+          {"id": "GST_REG_MATCH", "label": "Same GST registration no", "group": "TAX_ID", "strength": "STRONG", "weight": 0.50,
+           "kind": "field_equal", "normalize": "alnum_upper", "candidate_field": "U_GSTRegNo", "existing_field": "U_GSTRegNo"},
+          {"id": "EMAIL_DOMAIN_MATCH", "label": "Same email domain", "group": "EMAIL", "strength": "STRONG", "weight": 0.50,
+           "kind": "email_domain_match", "candidate_field": "E_Mail", "existing_field": "E_Mail"},
+          {"id": "EMAIL_DOMAIN_HAS_ALIAS", "label": "Email domain contains the abbreviation", "group": "EMAIL", "strength": "MEDIUM", "weight": 0.30,
+           "kind": "email_domain_contains_alias_token", "candidate_field": "E_Mail"},
+          {"id": "POSTAL_CODE_MATCH", "label": "Same postal code", "group": "LOCATION", "strength": "MEDIUM", "weight": 0.30,
+           "kind": "field_equal", "normalize": "alnum_upper", "candidate_field": "ZipCode", "existing_field": "ZipCode"},
+          {"id": "ADDRESS_SIMILAR", "label": "Similar street address", "group": "LOCATION", "strength": "MEDIUM", "weight": 0.30,
+           "kind": "text_similar", "candidate_field": "Address", "existing_field": "Address"},
+          {"id": "CONTACT_PERSON_MATCH", "label": "Same contact person", "group": "CONTACT_PERSON", "strength": "MEDIUM", "weight": 0.30,
+           "kind": "person_similar", "candidate_field": "CntctPrsn", "existing_field": "CntctPrsn"},
+          {"id": "PHONE_MATCH", "label": "Same phone number", "group": "PHONE", "strength": "MEDIUM", "weight": 0.30,
+           "kind": "phone_match", "candidate_field": "Phone1", "existing_field": "Phone1"},
+          {"id": "SAME_COUNTRY", "label": "Same country", "group": "COUNTRY", "strength": "WEAK", "weight": 0.15,
+           "kind": "field_equal", "candidate_field": "U_Country", "existing_field": "U_Country"},
+          {"id": "SAME_CUSTOMER_GROUP", "label": "Same customer group", "group": "CUSTOMER_GROUP", "strength": "WEAK", "weight": 0.15,
+           "kind": "field_equal", "candidate_field": "GroupCode", "existing_field": "GroupCode"},
+          {"id": "DIFFERENT_COUNTRY", "label": "Different country", "group": "COUNTRY_CONFLICT", "strength": "CONFLICT", "weight": -0.25,
+           "kind": "field_different", "candidate_field": "U_Country", "existing_field": "U_Country"}
+        ],
+        "tiers": {
+          "EXACT_ID":        {"action": "HARD_BLOCK", "requires_mdm_review": false,
+                              "ui_message": "Identical {field} to existing record {sap_id}. Use the existing record."},
+          "CONFIRMED":       {"action": "BLOCK_UNLESS_JUSTIFIED", "requires_mdm_review": true,
+                              "ui_message": "Likely duplicate of {sap_id} {existing_name}. Evidence: {evidence}. Use the existing record, or continue with a written justification."},
+          "UNCONFIRMED":     {"action": "REQUESTER_MUST_CONFIRM", "requires_mdm_review": true,
+                              "ui_message": "The name matches {existing_name} only through an abbreviation and nothing else confirms it. Is this the same organisation?"},
+          "CONTRADICTED":    {"action": "WARN_ONLY", "requires_mdm_review": false,
+                              "ui_message": "The name resembles {existing_name} but other details disagree ({evidence}). Treated as a different organisation; shown for information."},
+          "AMBIGUOUS_ALIAS": {"action": "REQUESTER_MUST_CHOOSE", "requires_mdm_review": true,
+                              "ui_message": "'{alias}' can mean more than one organisation and nothing singles one out. Pick the one you mean."},
+          "SUPERSEDED":      {"action": "NONE", "requires_mdm_review": false,
+                              "ui_message": "Alternative expansion; another candidate has stronger evidence."}
+        }
+      },
+      "abbreviation_resolution": {
+        "enabled": true,
+        "dynamic_initialisms": true,
+        "initialism_min_len": 3,
+        "max_variants": 4,
+        "alias_map": {
+          "nuhs": ["national university hospital singapore"],
+          "nuh":  ["national university hospital"],
+          "smu":  ["singapore management university"],
+          "nus":  ["national university of singapore"],
+          "ntu":  ["nanyang technological university"],
+          "sgh":  ["singapore general hospital"],
+          "ttsh": ["tan tock seng hospital"],
+          "cgh":  ["changi general hospital"],
+          "ktph": ["khoo teck puat hospital"],
+          "nccs": ["national cancer centre singapore"],
+          "nhcs": ["national heart centre singapore"]
+        },
+        "token_map": {
+          "nat": "national", "uni": "university", "univ": "university", "hosp": "hospital",
+          "intl": "international", "mgmt": "management", "solns": "solutions", "sg": "singapore", "med": "medical"
+        },
+        "legal_suffix_words": ["pte", "ltd", "inc", "corp", "co", "sdn", "bhd", "llc", "limited", "private"],
+        "stop_words": ["of", "the", "and", "for"],
+        "geo_words": ["singapore", "malaysia", "thailand", "indonesia", "vietnam"],
+        "discriminator_words": ["hospital", "clinic", "polyclinic", "laboratory", "lab", "university", "college", "institute", "solutions", "services", "trading", "supplies", "pharma", "medical", "healthcare", "holdings", "centre", "center"],
+        "discriminator_penalty": 0.35,
+        "core_min_jaccard": 0.5,
+        "core_conflict_cap": 0.60
+      }
+    },
+    "OITM": {
+      "compare_field": "ItemName",
+      "exact_match_fields": [],
+      "exact_match_policy": "HARD_BLOCK",
+      "similarity_threshold": 0.75,
+      "weights": {"token_set": 0.6, "jaro_winkler": 0.4},
+      "abbreviation_resolution": {
+        "enabled": true, "dynamic_initialisms": false, "initialism_min_len": 3, "max_variants": 4,
+        "alias_map": {},
+        "token_map": {"dx": "diagnostic", "rgt": "reagent"},
+        "legal_suffix_words": [], "stop_words": ["of", "the", "and", "for"], "geo_words": [],
+        "discriminator_words": [], "discriminator_penalty": 0.0, "core_min_jaccard": 0.0, "core_conflict_cap": 1.0
+      }
+    },
+    "OOCR": {
+      "compare_field": "PrcName",
+      "exact_match_fields": ["PrcCode"],
+      "exact_match_policy": "HARD_BLOCK",
+      "similarity_threshold": 0.80,
+      "weights": {"token_set": 0.6, "jaro_winkler": 0.4},
+      "abbreviation_resolution": {
+        "enabled": true, "dynamic_initialisms": false, "initialism_min_len": 3, "max_variants": 4,
+        "alias_map": {},
+        "token_map": {"bu": "business unit"},
+        "legal_suffix_words": [], "stop_words": ["of", "the", "and", "for"], "geo_words": [],
+        "discriminator_words": [], "discriminator_penalty": 0.0, "core_min_jaccard": 0.0, "core_conflict_cap": 1.0
+      }
+    }
+  },
+
+  "routing_matrix": [
+    {"id": "R01", "priority": 1, "route_to": "PENDING_MDM", "approver_role": "MDM_LEAD",
+     "condition": {"all": [{"field": "_dup_review", "op": "eq", "value": true}]}},
+    {"id": "R02", "priority": 2, "route_to": "PENDING_FINANCE", "approver_role": "FINANCE_APPROVER",
+     "condition": {"all": [{"field": "_domain", "op": "eq", "value": "VENDOR"}]}},
+    {"id": "R03", "priority": 3, "route_to": "PENDING_FINANCE", "approver_role": "FINANCE_APPROVER",
+     "condition": {"all": [{"field": "_domain", "op": "eq", "value": "CUSTOMER"}],
+                   "any": [{"field": "CreditLine", "op": "gt", "value": 50000},
+                           {"field": "GroupNum", "op": "eq", "value": 3}]}},
+    {"id": "R04", "priority": 4, "route_to": "PENDING_REGULATORY", "approver_role": "REGULATORY_OFFICER",
+     "then": ["PENDING_BU_HEAD", "PENDING_BUSINESS_SUPPORT"],
+     "condition": {"all": [{"field": "_domain", "op": "eq", "value": "ITEM"},
+                           {"field": "U_Category", "op": "in", "value": ["IVD", "Consumable"]}]}},
+    {"id": "R99", "priority": 99, "route_to": "PENDING_MDM", "approver_role": "MDM_LEAD",
+     "condition": {"all": []}}
+  ],
+
+  "state_machine": {
+    "initial": "DRAFT",
+    "terminal": ["REJECTED", "SYNCED_TO_SAP"],
+    "pending_states": ["PENDING_FINANCE", "PENDING_REGULATORY", "PENDING_BU_HEAD", "PENDING_BUSINESS_SUPPORT", "PENDING_MDM"],
+    "approver_role_by_state": {"PENDING_FINANCE": "FINANCE_APPROVER", "PENDING_REGULATORY": "REGULATORY_OFFICER", "PENDING_BU_HEAD": "BU_HEAD", "PENDING_BUSINESS_SUPPORT": "BUSINESS_SUPPORT", "PENDING_MDM": "MDM_LEAD"},
+    "transitions": [
+      {"action": "SUBMIT",  "from": ["DRAFT"], "to": "SUBMITTED", "actor_roles": ["REQUESTER"]},
+      {"action": "ROUTE",   "from": ["SUBMITTED"], "to": "<routing_matrix>", "actor_roles": ["SYSTEM"]},
+      {"action": "APPROVE", "from": ["PENDING_FINANCE", "PENDING_REGULATORY", "PENDING_BU_HEAD", "PENDING_BUSINESS_SUPPORT", "PENDING_MDM"], "to": "APPROVED", "actor_roles": ["<approver_role_by_state>"]},
+      {"action": "REJECT",  "from": ["PENDING_FINANCE", "PENDING_REGULATORY", "PENDING_BU_HEAD", "PENDING_BUSINESS_SUPPORT", "PENDING_MDM"], "to": "REJECTED", "actor_roles": ["<approver_role_by_state>"]},
+      {"action": "SYNC",    "from": ["APPROVED"], "to": "SYNCED_TO_SAP", "actor_roles": ["SYSTEM", "MDM_LEAD"]},
+      {"action": "REASSIGN","from": ["PENDING_FINANCE", "PENDING_REGULATORY", "PENDING_BU_HEAD", "PENDING_BUSINESS_SUPPORT", "PENDING_MDM"], "to": "<same_state>", "actor_roles": ["SYSTEM", "MDM_LEAD"]}
+    ]
+  },
+
+  "users": [
+    {"email": "amy@livesgroup.com", "display": "Amy", "title": "Product Manager", "role": "REQUESTER", "can_submit": ["ITEM"], "persona": "Needs a new item code for lab consumables she is about to import"},
+    {"email": "marcus@livesgroup.com", "display": "Marcus", "title": "Regional Sales Staff", "role": "REQUESTER", "can_submit": ["CUSTOMER", "COST_CENTER"], "persona": "New business unit: sets up customer accounts and a cost center"},
+    {"email": "procurement@livesgroup.com", "display": "Procurement Officer", "title": "Procurement Officer", "role": "REQUESTER", "can_submit": ["VENDOR"], "persona": "Onboards new suppliers and vendors"},
+    {"email": "weijie@livesgroup.com", "display": "Wei Jie", "title": "Finance Manager", "role": "FINANCE_APPROVER", "persona": "Approves credit terms and banking accuracy alongside a full-time job"},
+    {"email": "ra.officer@livesgroup.com", "display": "Quality / Regulatory Affairs Officer", "title": "Quality / Regulatory Affairs Officer", "role": "REGULATORY_OFFICER", "persona": "Checks licences and product documentation"},
+    {"email": "bu.head@livesgroup.com", "display": "Business Unit Head", "title": "Business Unit Head", "role": "BU_HEAD", "persona": "Commercial sign-off for requests from their entity (SPD, QTS, QTG)"},
+    {"email": "biz.support@livesgroup.com", "display": "Business Support Staff", "title": "Business Support Staff", "role": "BUSINESS_SUPPORT", "persona": "General operational approvals and administrative checks"},
+    {"email": "priya@livesgroup.com", "display": "Priya", "title": "MDM Analyst", "role": "MDM_LEAD", "persona": "Final check: duplicates, then creates the record in SAP B1"},
+    {"email": "it.admin@livesgroup.com", "display": "IT / System Administrator", "title": "IT / System Administrator", "role": "IT_ADMIN", "persona": "Changes workflow rules, required fields and role access"},
+    {"email": "ap.officer@livesgroup.com", "display": "Payments Officer (AP)", "title": "Payments Officer", "role": "PAYMENTS_OFFICER", "persona": "Releases payments, the only role that sees full bank details"},
+    {"email": "supervisor@livesgroup.com", "display": "Supervisor", "title": "Supervisor", "role": "SUPERVISOR", "persona": "Receives SLA escalations, sees metadata only"},
+    {"email": "auditor@livesgroup.com", "display": "Internal Auditor", "title": "Internal Auditor", "role": "AUDITOR", "persona": "Read-only, masked sensitive data, full audit trail"},
+    {"email": "requestor@livesgroup.com", "display": "Requestor", "title": "Requestor", "role": "REQUESTER", "persona": "Raises requests for customers, vendors, items and cost centers"},
+    {"email": "finance.approver@livesgroup.com", "display": "Approver (Finance)", "title": "Approver (Finance)", "role": "FINANCE_APPROVER", "persona": "Verifies credit terms and banking details"},
+    {"email": "regulatory.approver@livesgroup.com", "display": "Approver (Quality / Regulatory)", "title": "Approver (Quality / Regulatory)", "role": "REGULATORY_OFFICER", "persona": "Checks licences and product documentation"},
+    {"email": "bu.approver@livesgroup.com", "display": "Approver (Business Unit Head)", "title": "Approver (Business Unit Head)", "role": "BU_HEAD", "persona": "Commercial sign-off for their entity"},
+    {"email": "support.approver@livesgroup.com", "display": "Approver (Business Support)", "title": "Approver (Business Support)", "role": "BUSINESS_SUPPORT", "persona": "Operational and administrative checks"},
+    {"email": "mdm.analyst@livesgroup.com", "display": "MDM Analyst", "title": "MDM Analyst", "role": "MDM_LEAD", "persona": "Final check: duplicates, then creates the record in SAP B1"}
+  ],
+  "demo": {"roles": [
+    {"label": "Requestor", "email": "requestor@livesgroup.com"},
+    {"label": "Approver", "functions": [
+      {"label": "Finance", "email": "finance.approver@livesgroup.com"},
+      {"label": "Quality / Regulatory", "email": "regulatory.approver@livesgroup.com"},
+      {"label": "Business Unit Head", "email": "bu.approver@livesgroup.com"},
+      {"label": "Business Support", "email": "support.approver@livesgroup.com"}]},
+    {"label": "MDM Analyst", "email": "mdm.analyst@livesgroup.com"},
+    {"label": "IT / System Administrator", "email": "it.admin@livesgroup.com"},
+    {"label": "Payments Officer", "email": "ap.officer@livesgroup.com"},
+    {"label": "Supervisor", "email": "supervisor@livesgroup.com"},
+    {"label": "Internal Auditor", "email": "auditor@livesgroup.com"}]},
+  "delegates": {
+    "FINANCE_APPROVER": "finance.delegate@livesgroup.com",
+    "REGULATORY_OFFICER": "ra.delegate@livesgroup.com",
+    "BU_HEAD": "bu.delegate@livesgroup.com",
+    "BUSINESS_SUPPORT": "support.delegate@livesgroup.com",
+    "MDM_LEAD": "mdm.delegate@livesgroup.com"
+  },
+
+  "tabs": {
+    "INTAKE": "Intake & Gatekeeper",
+    "INBOX": "Requests / Approval Inbox",
+    "STAGING": "SAP B1 Staging",
+    "ANALYTICS": "Regional Analytics",
+    "SLA_BOARD": "SLA Board",
+    "AUDIT": "Audit Log",
+    "ADMIN": "Platform settings"
+  },
+
+  "roles": {
+    "REQUESTER":          {"label": "Requestor", "tabs": ["INTAKE", "INBOX"], "row_scope": "OWN",
+                           "can_submit": ["CUSTOMER", "VENDOR", "ITEM", "COST_CENTER"], "can_decide_states": [], "analytics": "NONE"},
+    "MDM_LEAD":           {"label": "MDM Analyst", "tabs": ["INBOX", "STAGING", "ANALYTICS", "SLA_BOARD", "AUDIT"], "row_scope": "ALL",
+                           "can_submit": [], "can_decide_states": ["PENDING_MDM"], "analytics": "ACCOUNT_LEVEL"},
+    "FINANCE_APPROVER":   {"label": "Finance Manager", "tabs": ["INBOX", "STAGING", "ANALYTICS"], "row_scope": "QUEUE",
+                           "can_submit": [], "can_decide_states": ["PENDING_FINANCE"], "analytics": "ACCOUNT_LEVEL"},
+    "PAYMENTS_OFFICER":   {"label": "Payments Officer", "tabs": ["INBOX", "STAGING"], "row_scope": "RELEASE",
+                           "can_submit": [], "can_decide_states": [], "analytics": "NONE"},
+    "REGULATORY_OFFICER": {"label": "Quality / Regulatory Affairs Officer", "tabs": ["INBOX"], "row_scope": "QUEUE",
+                           "can_submit": [], "can_decide_states": ["PENDING_REGULATORY"], "analytics": "NONE"},
+    "BU_HEAD":            {"label": "Business Unit Head", "tabs": ["INBOX", "ANALYTICS"], "row_scope": "QUEUE",
+                           "can_submit": [], "can_decide_states": ["PENDING_BU_HEAD"], "analytics": "AGGREGATE"},
+    "BUSINESS_SUPPORT":   {"label": "Business Support Staff", "tabs": ["INBOX"], "row_scope": "QUEUE",
+                           "can_submit": [], "can_decide_states": ["PENDING_BUSINESS_SUPPORT"], "analytics": "NONE"},
+    "IT_ADMIN":           {"label": "IT / System Administrator", "tabs": ["ADMIN", "SLA_BOARD", "AUDIT"], "row_scope": "META_ONLY",
+                           "can_submit": [], "can_decide_states": [], "analytics": "NONE"},
+    "SUPERVISOR":         {"label": "Supervisor", "tabs": ["SLA_BOARD", "ANALYTICS"], "row_scope": "META_ONLY",
+                           "can_submit": [], "can_decide_states": [], "analytics": "ACCOUNT_LEVEL"},
+    "AUDITOR":            {"label": "Internal Auditor", "tabs": ["INBOX", "STAGING", "AUDIT", "ANALYTICS"], "row_scope": "ALL",
+                           "can_submit": [], "can_decide_states": [], "analytics": "AGGREGATE"}
+  },
+  "security": {
+    "default_policy": "HIDDEN",
+    "always_visible_tabs_in_demo": [],
+    "meta_fields": ["request_id", "domain", "sap_table", "record_name", "status", "pending_since", "current_approver_role"],
+    "system_fields_visible": ["request_id", "status", "created_at", "pending_since", "last_updated_at", "U_ReqStatus", "U_Requester"],
+    "mask_styles": {"last4": {"keep": 4, "mask_char": "*"}, "redact": {"text": "******"}},
+    "classes": {
+      "GENERAL": {
+        "policy_by_role": {"*": "FULL"}
+      },
+      "FINANCIAL_TERMS": {
+        "mask_style": "redact",
+        "policy_by_role": {"REQUESTER": "FULL", "MDM_LEAD": "FULL", "FINANCE_APPROVER": "FULL", "BU_HEAD": "FULL", "BUSINESS_SUPPORT": "HIDDEN", "IT_ADMIN": "HIDDEN",
+                           "PAYMENTS_OFFICER": "HIDDEN", "REGULATORY_OFFICER": "HIDDEN",
+                           "SUPERVISOR": "MASKED", "AUDITOR": "MASKED"}
+      },
+      "BANK_DETAILS": {
+        "mask_style": "last4",
+        "write_only_in_form": true,
+        "policy_by_role": {"REQUESTER": "MASKED", "MDM_LEAD": "MASKED", "FINANCE_APPROVER": "MASKED",
+                           "PAYMENTS_OFFICER": {"policy": "FULL", "only_in_states": ["APPROVED", "SYNCED_TO_SAP"], "otherwise": "MASKED"},
+                           "REGULATORY_OFFICER": "HIDDEN", "BU_HEAD": "HIDDEN", "BUSINESS_SUPPORT": "HIDDEN", "IT_ADMIN": "HIDDEN", "SUPERVISOR": "HIDDEN", "AUDITOR": "MASKED"}
+      }
+    },
+    "channel_caps": {
+      "EMAIL": {"BANK_DETAILS": "HIDDEN"},
+      "APP": {}
+    }
+  },
+
+  "audit": {
+    "log_events": ["ROLE_SWITCHED", "VALIDATION_BLOCKED", "DUPLICATE_FLAGGED", "DUPLICATE_REQUESTER_ANSWER", "DUPLICATE_OVERRIDE_JUSTIFIED", "SUBMITTED", "ROUTED",
+                   "APPROVED", "REJECTED", "SYNCED", "SLA_ACTION", "SENSITIVE_FIELD_VIEWED_FULL",
+                   "CHECKS_APPROVED", "RELATED_RECORD_REVIEWED", "FORECAST_APPROVED", "FOLLOW_UP_APPROVED", "SETTING_CHANGED"]
+  },
+
+  "sla": {
+    "watched_states": ["PENDING_FINANCE", "PENDING_REGULATORY", "PENDING_BU_HEAD", "PENDING_BUSINESS_SUPPORT", "PENDING_MDM"],
+    "clock": "calendar_hours",
+    "system_sender": "mdm-system@livesgroup.com",
+    "supervisor_email": "supervisor@livesgroup.com",
+    "rules": [
+      {"id": "R48", "after_hours": 48, "action": "SEND_HIGH_PRIORITY_EMAIL", "notify": ["current_approver"],
+       "subject": "URGENT SLA REMINDER: Request {request_id} pending > 48 hours"},
+      {"id": "R96", "after_hours": 96, "action": "CREATE_CALENDAR_INVITE", "notify": ["current_approver", "supervisor"],
+       "title": "MDM Bottleneck Review: {request_id}"},
+      {"id": "R192", "after_hours": 192, "action": "AUTO_REASSIGN_TO_DELEGATE", "notify": ["delegate", "supervisor"],
+       "subject": "Request {request_id} auto-reassigned to delegate after 8 days"}
+    ]
+  },
+
+  "m365": {
+    "card_version": "1.0",
+    "originator_id": "REPLACE_WITH_REGISTERED_PROVIDER_GUID",
+    "respond_url": "https://mdm.livesgroup.internal/api/v1/approval/respond",
+    "digest_roles": ["MDM_LEAD", "FINANCE_APPROVER", "REGULATORY_OFFICER", "BU_HEAD", "BUSINESS_SUPPORT", "SUPERVISOR"]
+  },
+
+  "analytics": {
+    "product_lines": {"A": "Equipment", "B": "IVD", "C": "Consumable"},
+    "noise_filter": {"record_type": "CONFIRMED_PO", "status_in": ["SYNCED_TO_SAP", "COMPLETED"]},
+    "approve_roles": ["MDM_LEAD", "FINANCE_APPROVER", "SUPERVISOR"],
+    "forecast": {
+      "default_model": "seasonal_growth", "lookback_months": 12, "lookback_options": [6, 9, 12],
+      "min_points": 6, "horizon_months": 12, "horizon_options": [6, 12], "clip_min": 0,
+      "models": ["rolling_avg", "linear_trend", "damped_trend", "seasonal_level", "seasonal_trend", "seasonal_growth", "blend"],
+      "comparison_only": ["rolling_avg"],
+      "blend_of": ["linear_trend", "damped_trend", "seasonal_level", "seasonal_trend"],
+      "labels": {"rolling_avg": "Rolling average", "linear_trend": "Linear trend", "damped_trend": "Damped trend",
+                 "seasonal_level": "Seasonal level", "seasonal_trend": "Seasonal trend",
+                 "seasonal_growth": "Own season + regional growth", "blend": "Blend of all four"},
+      "damped": {"alphas": [0.2, 0.4, 0.6, 0.8], "betas": [0.05, 0.1, 0.2, 0.4], "phis": [0.8, 0.9, 0.95]},
+      "seasonal": {"period": 12, "min_pooled_months": 12},
+      "seasonal_series": {"harmonics": 1, "recency_half_life_months": 3, "min_history_months": 12, "growth_share": 1.0}
+    },
+    "churn": {"recent_window_months": 3, "baseline_window_months": 12, "baseline_precedes_recent": true,
+              "velocity_threshold": -0.20, "min_baseline_monthly_volume": 5},
+    "cross_sell": {"antecedent_products": ["A", "B"], "consequent_product": "C", "window_days": 90},
+    "rolling_backtest": {"origins": 3, "origin_step_months": 3},
+    "margin": {"assumed": true, "note": "Assumed gross margin by product line for the prototype. Replace with Finance's figures.",
+               "by_product": {"A": 0.22, "B": 0.38, "C": 0.45}},
+    "order_pattern": {
+      "min_orders": 4, "adi_cutoff": 1.32, "cv2_cutoff": 0.49,
+      "labels": {"SMOOTH": "Scheduled: steady size", "ERRATIC": "Scheduled: varying size",
+                 "INTERMITTENT": "Ad hoc: steady size", "LUMPY": "Ad hoc: lumpy",
+                 "TOO_FEW": "Too few orders to classify"},
+      "group_of": {"SMOOTH": "Scheduled", "ERRATIC": "Scheduled", "INTERMITTENT": "Ad hoc", "LUMPY": "Ad hoc",
+                   "TOO_FEW": "Too few orders"}
+    },
+    "regional_view": {
+      "window_months": 12,
+      "prior_offset_months": 12,
+      "growth_definition": "Growth = year-over-year change in confirmed customer purchase-order quantity: (quantity in the current window - quantity in the same months one year earlier) / quantity in the same months one year earlier. Only confirmed orders that passed the noise filter count.",
+      "backtest_holdout_months": 6,
+      "baseline_windows_months": [6, 12],
+      "mock_history_months": 24,
+      "country_labels": {"SG": "Singapore", "MY": "Malaysia", "TH": "Thailand", "ID": "Indonesia", "VN": "Vietnam"},
+      "request_type_labels": {
+        "CONFIRMED_USED": "Confirmed customer orders",
+        "CONFIRMED_NOT_READY": "Confirmed orders waiting for setup, or rejected",
+        "INQUIRY": "Enquiries",
+        "DRAFT_PO": "Draft orders",
+        "CANCELLED_PO": "Cancelled orders"
+      }
+    }
+  }
+}

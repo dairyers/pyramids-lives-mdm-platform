@@ -1,0 +1,43 @@
+# Visual direction: SAP Fiori, Morning Horizon. Colour, corner and type values come from SAP's published theming
+# package (@sap-theming/theming-base-content, theme sap_horizon): brand #0070F2, text #131E29, secondary text #556B82,
+# page #F5F6F7, cards and fields white, borders #BCC3CA / #E5E5E5, link #0064D9. The SAP "72" typeface is loaded in
+# tabs/ui.py. Presentation only: no business behaviour lives here (that is config_rules.json).
+
+[theme]
+base = "light"
+primaryColor = "#0070F2"
+backgroundColor = "#F5F6F7"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#131E29"
+linkColor = "#0064D9"
+borderColor = "#E5E5E5"
+dataframeBorderColor = "#E5E5E5"
+dataframeHeaderBackgroundColor = "#EFF1F2"
+dataframeHeaderTextColor = "#556B82"
+showWidgetBorder = true
+baseRadius = "0.5rem"
+buttonRadius = "0.5rem"
+
+redColor = "#AA0808"
+orangeColor = "#E76500"
+yellowColor = "#E76500"
+greenColor = "#256F3A"
+blueColor = "#0070F2"
+violetColor = "#7858FF"
+grayColor = "#556B82"
+
+font = "sans-serif"
+headingFont = "sans-serif"
+codeFont = "monospace"
+baseFontSize = 14
+headingFontSizes = ["2rem", "1.5rem", "1.25rem", "1rem", "0.875rem", "0.875rem"]
+headingFontWeights = [700, 700, 600, 600, 600, 600]
+metricValueFontSize = "1.75rem"
+metricValueFontWeight = 700
+
+# Validated categorical slots (kept in step with SLOTS in tabs/tab_analytics.py).
+chartCategoricalColors = ["#008a7a", "#c26f1e", "#7a5cc0"]
+
+[theme.sidebar]
+backgroundColor = "#EFF1F2"
+secondaryBackgroundColor = "#FFFFFF"

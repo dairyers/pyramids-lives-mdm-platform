@@ -1,0 +1,786 @@
+[
+  {
+    "pair_id": "N01",
+    "source": "spec 2.2 name table",
+    "candidate": {
+      "CardName": "Nat. Uni. Hospital Singapore",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10023",
+    "label": "SAME",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": ""
+  },
+  {
+    "pair_id": "N02",
+    "source": "spec 2.2 name table",
+    "candidate": {
+      "CardName": "NUHS",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10023",
+    "label": "SAME",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": ""
+  },
+  {
+    "pair_id": "N03",
+    "source": "spec 2.2 name table",
+    "candidate": {
+      "CardName": "N.U.H.S.",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10023",
+    "label": "SAME",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": ""
+  },
+  {
+    "pair_id": "N04",
+    "source": "spec 2.2 name table",
+    "candidate": {
+      "CardName": "NUH",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10023",
+    "label": "SAME",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": ""
+  },
+  {
+    "pair_id": "N05",
+    "source": "spec 2.2 name table",
+    "candidate": {
+      "CardName": "Nat Univ Hosp",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10023",
+    "label": "SAME",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": ""
+  },
+  {
+    "pair_id": "N06",
+    "source": "spec 2.2 name table",
+    "candidate": {
+      "CardName": "SMU Solutions",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10061",
+    "label": "SAME",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": ""
+  },
+  {
+    "pair_id": "N07",
+    "source": "spec 2.2 name table",
+    "candidate": {
+      "CardName": "SMU Solutions Pte Ltd",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10062",
+    "label": "SAME",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": ""
+  },
+  {
+    "pair_id": "N08",
+    "source": "spec 2.2 name table",
+    "candidate": {
+      "CardName": "TTSH",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10012",
+    "label": "SAME",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": ""
+  },
+  {
+    "pair_id": "N09",
+    "source": "spec 2.2 name table",
+    "candidate": {
+      "CardName": "Tan Tock Seng Hosp",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10012",
+    "label": "SAME",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": ""
+  },
+  {
+    "pair_id": "N10",
+    "source": "spec 2.2 name table",
+    "candidate": {
+      "CardName": "National University of Singapore",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10023",
+    "label": "DIFFERENT",
+    "expected_tier": null,
+    "negative_control": true,
+    "note": ""
+  },
+  {
+    "pair_id": "N11",
+    "source": "spec 2.2 name table",
+    "candidate": {
+      "CardName": "NUS",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10023",
+    "label": "DIFFERENT",
+    "expected_tier": null,
+    "negative_control": true,
+    "note": ""
+  },
+  {
+    "pair_id": "N12",
+    "source": "spec 2.2 name table",
+    "candidate": {
+      "CardName": "SMU Solutions",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10045",
+    "label": "DIFFERENT",
+    "expected_tier": null,
+    "negative_control": true,
+    "note": ""
+  },
+  {
+    "pair_id": "N13",
+    "source": "spec 2.2 name table",
+    "candidate": {
+      "CardName": "Singapore Eye Hospital",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10007",
+    "label": "DIFFERENT",
+    "expected_tier": null,
+    "negative_control": true,
+    "note": ""
+  },
+  {
+    "pair_id": "N14",
+    "source": "spec 2.2 name table",
+    "candidate": {
+      "CardName": "National Heart Centre Singapore",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10023",
+    "label": "DIFFERENT",
+    "expected_tier": null,
+    "negative_control": true,
+    "note": ""
+  },
+  {
+    "pair_id": "N15",
+    "source": "spec 2.2 name table",
+    "candidate": {
+      "CardName": "Tock Seng Clinic",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10012",
+    "label": "DIFFERENT",
+    "expected_tier": null,
+    "negative_control": true,
+    "note": ""
+  },
+  {
+    "pair_id": "E01",
+    "source": "spec 2.2b evidence table",
+    "candidate": {
+      "CardName": "Nat. Uni. Hospital Singapore",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "ap@nuhs-demo.example",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10023",
+    "label": "SAME",
+    "expected_tier": "CONFIRMED",
+    "negative_control": false,
+    "note": "3a"
+  },
+  {
+    "pair_id": "E02",
+    "source": "spec 2.2b evidence table",
+    "candidate": {
+      "CardName": "NUHS",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "ap@nuhs-demo.example",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10023",
+    "label": "SAME",
+    "expected_tier": "CONFIRMED",
+    "negative_control": false,
+    "note": "3b"
+  },
+  {
+    "pair_id": "E03",
+    "source": "spec 2.2b evidence table",
+    "candidate": {
+      "CardName": "NUHS",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10023",
+    "label": "SAME",
+    "expected_tier": "UNCONFIRMED",
+    "negative_control": false,
+    "note": "3d: two weak groups only"
+  },
+  {
+    "pair_id": "E04",
+    "source": "spec 2.2b evidence table",
+    "candidate": {
+      "CardName": "NUHS",
+      "LicTradNum": "202600777K",
+      "GroupCode": 102,
+      "E_Mail": "buyer@healthsupplies.example",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "MY",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10023",
+    "label": "DIFFERENT",
+    "expected_tier": "CONTRADICTED",
+    "negative_control": true,
+    "note": "3e: another company"
+  },
+  {
+    "pair_id": "E05",
+    "source": "spec 2.2b evidence table",
+    "candidate": {
+      "CardName": "NUHS",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com",
+      "ZipCode": "119999",
+      "CntctPrsn": "Mei Ling Lim"
+    },
+    "existing_code": "C10023",
+    "label": "SAME",
+    "expected_tier": "CONFIRMED",
+    "negative_control": false,
+    "note": "3f"
+  },
+  {
+    "pair_id": "E06",
+    "source": "spec 2.2b evidence table",
+    "candidate": {
+      "CardName": "NUHS",
+      "LicTradNum": "198400001X",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10023",
+    "label": "SAME",
+    "expected_tier": "CONFIRMED",
+    "negative_control": false,
+    "note": "3g: tax ID typo"
+  },
+  {
+    "pair_id": "E07",
+    "source": "spec 2.2b evidence table",
+    "candidate": {
+      "CardName": "NUHS",
+      "LicTradNum": "202600777K",
+      "GroupCode": 102,
+      "E_Mail": "ap@nuhs-demo.example",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "MY",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10023",
+    "label": "DIFFERENT",
+    "expected_tier": "UNCONFIRMED",
+    "negative_control": false,
+    "note": "3h: regional sister company; a separate customer record, flagged for review by design"
+  },
+  {
+    "pair_id": "E08",
+    "source": "spec 2.2b evidence table",
+    "candidate": {
+      "CardName": "NUHS",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com",
+      "Phone1": "6000-1234"
+    },
+    "existing_code": "C10023",
+    "label": "SAME",
+    "expected_tier": "CONFIRMED",
+    "negative_control": false,
+    "note": "phone + country + group"
+  },
+  {
+    "pair_id": "E09",
+    "source": "spec 2.2b evidence table",
+    "candidate": {
+      "CardName": "NUHS",
+      "LicTradNum": "202600777K",
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10023",
+    "label": "SAME",
+    "expected_tier": "UNCONFIRMED",
+    "negative_control": false,
+    "note": "gmail, no other fields"
+  },
+  {
+    "pair_id": "E10",
+    "source": "spec 2.2b evidence table",
+    "candidate": {
+      "CardName": "NUHS",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com",
+      "U_GSTRegNo": "m2 0000123 4"
+    },
+    "existing_code": "C10023",
+    "label": "SAME",
+    "expected_tier": "CONFIRMED",
+    "negative_control": false,
+    "note": "GST + country + group"
+  },
+  {
+    "pair_id": "E11",
+    "source": "spec 2.2b evidence table",
+    "candidate": {
+      "CardName": "NUHS",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com",
+      "ZipCode": "119999"
+    },
+    "existing_code": "C10023",
+    "label": "SAME",
+    "expected_tier": "CONFIRMED",
+    "negative_control": false,
+    "note": "postal code + country + group"
+  },
+  {
+    "pair_id": "E12",
+    "source": "spec 2.2b evidence table",
+    "candidate": {
+      "CardName": "NUHS",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com",
+      "Address": "1 demo medical dr"
+    },
+    "existing_code": "C10023",
+    "label": "SAME",
+    "expected_tier": "CONFIRMED",
+    "negative_control": false,
+    "note": "abbreviated address + country + group"
+  },
+  {
+    "pair_id": "E13",
+    "source": "spec 2.2b evidence table",
+    "candidate": {
+      "CardName": "National University of Singapore",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "x@y.example",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10031",
+    "label": "SAME",
+    "expected_tier": "CONFIRMED",
+    "negative_control": false,
+    "note": "plain fuzzy: it IS that customer"
+  },
+  {
+    "pair_id": "E14",
+    "source": "spec 2.2b evidence table",
+    "candidate": {
+      "CardName": "National University of Singapore",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "x@y.example",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10023",
+    "label": "DIFFERENT",
+    "expected_tier": null,
+    "negative_control": true,
+    "note": "NUS must not match the hospital"
+  },
+  {
+    "pair_id": "X01",
+    "source": "extra",
+    "candidate": {
+      "CardName": "Singapore Genral Hospital",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "purchasing@sgh-demo.example",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10007",
+    "label": "SAME",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": "typo"
+  },
+  {
+    "pair_id": "X02",
+    "source": "extra",
+    "candidate": {
+      "CardName": "SGH",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "someone@gmail.com",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10007",
+    "label": "SAME",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": "acronym, free mail"
+  },
+  {
+    "pair_id": "X03",
+    "source": "extra",
+    "candidate": {
+      "CardName": "Khoo Teck Puat Hosp",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "stores@ktph-demo.example",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10005",
+    "label": "SAME",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": "token abbreviation"
+  },
+  {
+    "pair_id": "X04",
+    "source": "extra",
+    "candidate": {
+      "CardName": "National Heart Center Singapore",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "finance@nhcs-demo.example",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10018",
+    "label": "SAME",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": "US spelling of centre"
+  },
+  {
+    "pair_id": "X05",
+    "source": "extra",
+    "candidate": {
+      "CardName": "Lumina Diagnostic Sdn Bhd",
+      "LicTradNum": "202600777K",
+      "GroupCode": 101,
+      "E_Mail": "orders@luminadiagnost-demo.example",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "MY",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10010",
+    "label": "SAME",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": "singular/plural typo"
+  },
+  {
+    "pair_id": "X06",
+    "source": "extra",
+    "candidate": {
+      "CardName": "Changi General Clinic",
+      "LicTradNum": "202600777K",
+      "GroupCode": 101,
+      "E_Mail": "admin@changiclinic.example",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10003",
+    "label": "DIFFERENT",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": "clinic vs hospital look-alike"
+  },
+  {
+    "pair_id": "X07",
+    "source": "extra",
+    "candidate": {
+      "CardName": "Tan Tock Seng Pharma",
+      "LicTradNum": "202600777K",
+      "GroupCode": 102,
+      "E_Mail": "sales@ttspharma.example",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10012",
+    "label": "DIFFERENT",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": "pharma vs hospital look-alike"
+  },
+  {
+    "pair_id": "X08",
+    "source": "extra",
+    "candidate": {
+      "CardName": "National University Polyclinic",
+      "LicTradNum": "202600777K",
+      "GroupCode": 100,
+      "E_Mail": "ops@nupoly.example",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "SG",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10023",
+    "label": "DIFFERENT",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": "polyclinic vs hospital look-alike"
+  },
+  {
+    "pair_id": "X09",
+    "source": "extra",
+    "candidate": {
+      "CardName": "Bangkok Riverside Clinic",
+      "LicTradNum": "202600777K",
+      "GroupCode": 101,
+      "E_Mail": "info@bkkriverclinic.example",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "TH",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10019",
+    "label": "DIFFERENT",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": "clinic vs hospital look-alike"
+  },
+  {
+    "pair_id": "X10",
+    "source": "extra",
+    "candidate": {
+      "CardName": "Saigon Lotus Trading",
+      "LicTradNum": "202600777K",
+      "GroupCode": 102,
+      "E_Mail": "sales@saigonlotustrading.example",
+      "CreditLine": 20000.0,
+      "GroupNum": 1,
+      "U_Entity": "SPD",
+      "U_Country": "VN",
+      "U_Requester": "marcus@livesgroup.com"
+    },
+    "existing_code": "C10029",
+    "label": "DIFFERENT",
+    "expected_tier": null,
+    "negative_control": false,
+    "note": "trading company vs hospital look-alike"
+  }
+]

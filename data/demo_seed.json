@@ -1,0 +1,72 @@
+{
+  "actors": {
+    "REGULATORY_OFFICER": "regulatory.approver@livesgroup.com",
+    "BU_HEAD": "bu.approver@livesgroup.com",
+    "BUSINESS_SUPPORT": "support.approver@livesgroup.com",
+    "FINANCE_APPROVER": "finance.approver@livesgroup.com",
+    "MDM_LEAD": "mdm.analyst@livesgroup.com"
+  },
+  "requests": [
+    {
+      "name": "Pipette tips, synced",
+      "domain": "ITEM", "requester": "requestor@livesgroup.com",
+      "payload": {"ItemName": "Pipette Tips 200ul, Box of 96", "ItmsGrpCod": 102, "U_Category": "Consumable",
+                  "InvntryUom": "Box", "U_RegLicenseNo": "HSA-CON-2025-0208", "U_Entity": "QTS", "LastPurPrc": 14.5},
+      "steps": [{"action": "APPROVE", "until": "APPROVED"}, {"action": "SYNC"}]
+    },
+    {
+      "name": "Rejected item",
+      "domain": "ITEM", "requester": "requestor@livesgroup.com",
+      "payload": {"ItemName": "Rapid Strep A Test Kit", "ItmsGrpCod": 101, "U_Category": "IVD", "InvntryUom": "Box",
+                  "U_RegLicenseNo": "HSA-IVD-2025-0113", "U_Entity": "SPD", "LastPurPrc": 62.0},
+      "steps": [{"action": "REJECT", "comment": "Licence number does not match the supplier certificate. Please re-check and resubmit."}]
+    },
+    {
+      "name": "Approved, ready for SAP",
+      "domain": "ITEM", "requester": "requestor@livesgroup.com",
+      "payload": {"ItemName": "Hematology Control Reagent, Level 2", "ItmsGrpCod": 101, "U_Category": "IVD",
+                  "InvntryUom": "Box", "U_RegLicenseNo": "HSA-IVD-2024-0457", "U_Entity": "SPD", "LastPurPrc": 118.0},
+      "steps": [{"action": "APPROVE", "until": "APPROVED"}]
+    },
+    {
+      "name": "With the Business Unit Head",
+      "domain": "ITEM", "requester": "requestor@livesgroup.com",
+      "payload": {"ItemName": "Chemistry Calibrator Set", "ItmsGrpCod": 101, "U_Category": "IVD", "InvntryUom": "Kit",
+                  "U_RegLicenseNo": "HSA-IVD-2024-0892", "U_Entity": "QTG", "LastPurPrc": 240.0},
+      "steps": [{"action": "APPROVE", "comment": "Licence checked against the supplier certificate."}]
+    },
+    {
+      "name": "With Quality and Regulatory",
+      "domain": "ITEM", "requester": "requestor@livesgroup.com",
+      "payload": {"ItemName": "Rapid Test Cassette, COVID/Flu, 25 pack", "ItmsGrpCod": 101, "U_Category": "IVD",
+                  "InvntryUom": "Box", "U_RegLicenseNo": "HSA-IVD-2026-0031", "U_Entity": "SPD", "LastPurPrc": 96.0},
+      "days_waiting": 3,
+      "steps": []
+    },
+    {
+      "name": "With the MDM Analyst",
+      "domain": "COST_CENTER", "requester": "requestor@livesgroup.com",
+      "payload": {"PrcCode": "CC-8800", "PrcName": "Regional Marketing", "U_Entity": "SPD",
+                  "U_BudgetMgr": "requestor@livesgroup.com"},
+      "steps": []
+    },
+    {
+      "name": "Customer approved, credit terms and bank details",
+      "domain": "CUSTOMER", "requester": "requestor@livesgroup.com",
+      "payload": {"CardName": "Bright Horizons Medical Centre", "LicTradNum": "201733445R", "GroupCode": 100,
+                  "E_Mail": "accounts@brighthorizons.example", "CreditLine": 50000, "GroupNum": 2, "BankCode": "Example Bank",
+                  "BankAcct": "0987654321", "SwiftCode": "EXMPSGSG", "U_Entity": "SPD", "U_Country": "SG",
+                  "Address": "5 Health Drive", "ZipCode": "168938", "CntctPrsn": "Mei Tan", "Phone1": "+65 6555 0100"},
+      "steps": [{"action": "APPROVE", "until": "APPROVED"}]
+    },
+    {
+      "name": "Vendor with Finance",
+      "domain": "VENDOR", "requester": "requestor@livesgroup.com",
+      "payload": {"CardName": "Pacific Lab Supplies Pte Ltd", "LicTradNum": "201455667M", "Address": "30 Tuas Avenue",
+                  "ZipCode": "639494", "CntctPrsn": "Daniel Koh", "Phone1": "+65 6444 0200", "BankCode": "Example Bank",
+                  "BankAcct": "5550987654", "SwiftCode": "EXMPSGSG", "GroupNum": 2, "U_Entity": "SPD"},
+      "days_waiting": 2,
+      "steps": []
+    }
+  ]
+}

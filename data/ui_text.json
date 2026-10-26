@@ -1,0 +1,457 @@
+{
+  "domains": {
+    "CUSTOMER": {
+      "name": "Customer",
+      "help": "A hospital, clinic or distributor that buys from us.",
+      "icon": "local_hospital"
+    },
+    "VENDOR": {
+      "name": "Vendor",
+      "help": "A supplier we buy from or pay.",
+      "icon": "local_shipping"
+    },
+    "ITEM": {
+      "name": "Item / product",
+      "help": "A product, reagent, kit or material we stock or sell.",
+      "icon": "inventory_2"
+    },
+    "COST_CENTER": {
+      "name": "Cost center",
+      "help": "A budget unit used to track spend, for example a new business unit.",
+      "icon": "account_balance_wallet"
+    }
+  },
+  "tables": {
+    "OCRD": "Customers and vendors",
+    "OITM": "Items",
+    "OOCR": "Cost centers"
+  },
+  "home": {
+    "REQUESTER": "Ask for new customers, vendors, items or cost centers, and follow each one until it exists in SAP.",
+    "MDM_LEAD": "Final check before SAP: review possible duplicates, approve overrides, and create the approved records.",
+    "FINANCE_APPROVER": "Verify credit terms and banking details before a customer or vendor is created.",
+    "REGULATORY_OFFICER": "Confirm that new IVD and consumable items are properly licensed and documented.",
+    "BU_HEAD": "Give the commercial sign-off for requests that come from your business entity.",
+    "BUSINESS_SUPPORT": "Complete the operational and administrative checks before the final MDM review.",
+    "IT_ADMIN": "Change how the platform works: mandatory details by request type, reminder times and who can do what. Changes apply straight away.",
+    "PAYMENTS_OFFICER": "Release payments for approved records. Full bank details are shown only to you, and only after approval.",
+    "SUPERVISOR": "Spot requests that are stuck and see regional sales insights. Private field values are never shown to you.",
+    "AUDITOR": "Check who approved what, and when. Read-only, with sensitive values masked."
+  },
+  "home_default": "Review the requests waiting for your decision. Approve or reject each one, and add a comment so the requestor knows why.",
+  "apps": {
+    "new": "Ask for a customer, vendor, item or cost center.",
+    "requests": "Follow requests, review details and decide.",
+    "insights": "Volumes, growth and forecasts by country and product.",
+    "waiting": "Requests waiting too long, and the reminders sent.",
+    "audit": "Who did what, and when. Read-only.",
+    "admin": "Approval routes, required fields and access rules."
+  },
+  "sla_actions": {
+    "SEND_HIGH_PRIORITY_EMAIL": "an urgent reminder email",
+    "CREATE_CALENDAR_INVITE": "a review meeting invite",
+    "AUTO_REASSIGN_TO_DELEGATE": "a hand-over to the approver's delegate"
+  },
+  "events": {
+    "ROLE_SWITCHED": "Demo: switched person",
+    "VALIDATION_BLOCKED": "Form stopped: details missing or wrong",
+    "DUPLICATE_FLAGGED": "Possible duplicate flagged",
+    "DUPLICATE_REQUESTER_ANSWER": "Requester answered the duplicate question",
+    "DUPLICATE_OVERRIDE_JUSTIFIED": "Requester justified a new record",
+    "SUBMITTED": "Request submitted",
+    "ROUTED": "Sent to the right approver",
+    "APPROVED": "Approved",
+    "REJECTED": "Rejected",
+    "SYNCED": "Created in SAP",
+    "SLA_ACTION": "Automatic reminder or hand-over",
+    "SENSITIVE_FIELD_VIEWED_FULL": "Full bank details viewed",
+    "CHECKS_APPROVED": "Requester approved the automatic checks",
+    "RELATED_RECORD_REVIEWED": "Requester reviewed a similar record",
+    "FORECAST_APPROVED": "Forecast plan approved",
+    "FOLLOW_UP_APPROVED": "Customer follow-ups approved",
+    "SETTING_CHANGED": "Platform setting changed"
+  },
+  "tiers": {
+    "EXACT_ID": "Same ID number",
+    "CONFIRMED": "Very likely the same",
+    "UNCONFIRMED": "Possibly the same",
+    "CONTRADICTED": "Probably different",
+    "AMBIGUOUS_ALIAS": "Please choose",
+    "SUPERSEDED": "Replaced by a better match"
+  },
+  "stories_heading": "Try a story from the Case Synopsis",
+  "stories_intro": "Each story is a person from the brief. It switches to them and loads their case into the real screens.",
+  "story_order": [
+    "S1",
+    "S4",
+    "S2",
+    "S3",
+    "S8",
+    "S5",
+    "S6",
+    "S7"
+  ],
+  "stories": {
+    "S1": {
+      "label": "Amy, Product Manager: the 18-day item code",
+      "blurb": "Appendix C. Amy needs an item code for a lab consumable and leaves the regulatory field blank.",
+      "hint": "Amy copies an old request and leaves the regulatory licence blank. Click Check my request: the form stops her at once and names the field. Add licence HSA-IVD-2026-0881 and submit. It then goes Quality / Regulatory Affairs, then the Business Unit Head, then Business Support, then the MDM Analyst, each notified automatically. Use the Demo button to become each approver in turn.",
+      "page": "new",
+      "steps": [
+        {
+          "who": "amy@livesgroup.com",
+          "page": "new",
+          "do": "Type **HSA-IVD-2026-0881** in the blank **Regulatory License No**, click **Check my request**, then **Send request**.",
+          "notice": "Amy copied an old request and left the licence blank. The red message appeared the moment she looked at the form, not two days later by email."
+        },
+        {
+          "who": "ra.officer@livesgroup.com",
+          "page": "requests",
+          "do": "On **Lab Consumable Diagnostic Reagent**, click **Approve**.",
+          "notice": "The licence is visible and the cost is hidden for this role."
+        },
+        {
+          "who": "bu.head@livesgroup.com",
+          "page": "requests",
+          "do": "On **Lab Consumable Diagnostic Reagent**, click **Approve**.",
+          "notice": "It reached the Business Unit Head automatically. Nobody had to notice an email."
+        },
+        {
+          "who": "biz.support@livesgroup.com",
+          "page": "requests",
+          "do": "On **Lab Consumable Diagnostic Reagent**, click **Approve**.",
+          "notice": "Last approver in the chain."
+        },
+        {
+          "who": "priya@livesgroup.com",
+          "page": "requests",
+          "do": "Open **SAP records**, then click **Create 'Lab Consumable Diagnostic Reagent' in SAP** under Items.",
+          "notice": "The MDM Analyst makes the final check."
+        },
+        {
+          "who": "amy@livesgroup.com",
+          "page": "requests",
+          "do": "Look at the progress bar on the request.",
+          "notice": "It shows Created in SAP with every step ticked. The email route took 18 days; this took a few clicks."
+        },
+        {
+          "who": "auditor@livesgroup.com",
+          "page": "audit",
+          "do": "Browse the trail.",
+          "notice": "The Internal Auditor sees who did what and when, with no private values in it."
+        }
+      ]
+    },
+    "S4": {
+      "label": "Marcus, Regional Sales: the new business unit",
+      "blurb": "Appendix B. His team is new and its first requests went to the wrong people.",
+      "hint": "Marcus's team was just added and nobody told him who approves a cost center. Click Check my request: it goes to the MDM Analyst automatically, with no guessing. Then use the Demo button to look at it as other people and see who can and cannot see it.",
+      "page": "new",
+      "steps": [
+        {
+          "who": "marcus@livesgroup.com",
+          "page": "new",
+          "do": "Click **Check my request**, then **Send request**.",
+          "notice": "Marcus's team is new and does not know who approves a cost center. The request is routed for him."
+        },
+        {
+          "who": "priya@livesgroup.com",
+          "page": "requests",
+          "do": "On **New BU Regional Direct**, click **Approve**.",
+          "notice": "It is waiting in Needs you for the MDM Analyst."
+        },
+        {
+          "who": "weijie@livesgroup.com",
+          "page": "requests",
+          "do": "Look at the list.",
+          "notice": "Wei Jie (Finance) sees nothing about this request. Each person sees only what their role needs."
+        }
+      ]
+    },
+    "S2": {
+      "label": "Wei Jie, Finance Manager: credit terms and banking",
+      "blurb": "Appendix B. A new customer with a $75,000 credit limit and Net 90 terms needs his approval.",
+      "hint": "Marcus requests a customer with a $75,000 credit limit and Net 90 terms. Click Check my request, answer the question about the similar record, and approve: it goes to Wei Jie, the Finance Manager. Use the Demo button to become Wei Jie, who sees the credit terms but only the last four digits of the bank account.",
+      "page": "new",
+      "steps": [
+        {
+          "who": "marcus@livesgroup.com",
+          "page": "new",
+          "do": "Click **Check my request**, answer **No, a different organisation**, then click **Send request**.",
+          "notice": "Marcus requests a customer with a $75,000 credit limit and Net 90 terms. Read how the name was understood first."
+        },
+        {
+          "who": "weijie@livesgroup.com",
+          "page": "requests",
+          "do": "On **SMU Solutions**, click **Approve**.",
+          "notice": "Credit terms are visible, but the bank account shows only its last four digits."
+        },
+        {
+          "who": "priya@livesgroup.com",
+          "page": "requests",
+          "do": "Open **SAP records**, then click **Create 'SMU Solutions' in SAP** under Customers and vendors.",
+          "notice": "The MDM Analyst makes the final check."
+        },
+        {
+          "who": "ap.officer@livesgroup.com",
+          "page": "requests",
+          "do": "Open the details of **SMU Solutions**.",
+          "notice": "The Payments Officer is the only person who sees the full account number, and only once the request is approved."
+        }
+      ]
+    },
+    "S3": {
+      "label": "Priya, MDM Analyst: the near-duplicate hospital",
+      "blurb": "Appendix B. Priya is the one who would notice a near-duplicate, if she happens to remember it.",
+      "hint": "Marcus requests 'NUHS', short for National University Hospital Singapore, already in SAP. Click Check my request: the system spots it, even abbreviated, and asks what to do. If it goes ahead, switch to Priya, who sees the side-by-side comparison and decides. Pick another example in the Demo button to try other cases.",
+      "page": "new",
+      "steps": [
+        {
+          "who": "marcus@livesgroup.com",
+          "page": "new",
+          "do": "Click **Check my request** and read the **side-by-side** table, then click **Continue**. Choose **No, it is different**, type a reason such as 'different business unit', then click **Send as a new record**.",
+          "notice": "Marcus enters 'NUHS'. His details sit next to the record already in SAP, with a result per detail. Contact, phone, address and email on the existing record stay private for his role, so it says whether his match instead of showing them."
+        },
+        {
+          "who": "priya@livesgroup.com",
+          "page": "requests",
+          "do": "On **NUHS**, read the blue note, compare in **Details**, then click **Reject - use C10023** (or **Approve override**).",
+          "notice": "Priya sees Marcus's reason and the new request next to the existing record with the evidence."
+        },
+        {
+          "who": "marcus@livesgroup.com",
+          "page": "requests",
+          "do": "Open the **History** tab.",
+          "notice": "Marcus sees the decision, instead of finding out when his order fails."
+        }
+      ]
+    },
+    "S8": {
+      "label": "Fuzzy matching and agreeing field groups",
+      "blurb": "How the system decides whether a similar name is the same organisation.",
+      "hint": "Marcus tries six requests for the same hospital. Each one changes which details agree with the record already in SAP, and the verdict changes with it.",
+      "page": "new",
+      "persona": "marcus@livesgroup.com",
+      "domain": "CUSTOMER",
+      "steps": [
+        {
+          "who": "marcus@livesgroup.com",
+          "page": "new",
+          "variant": "3a",
+          "do": "Click **Check my request** and read the side-by-side table.",
+          "notice": "Marcus types 'Nat. Uni. Hospital Singapore'. The name is only a clue, so the system expands the abbreviations and then checks the other details. Here the email domain, country and customer group agree with C10023: three groups of evidence, one of them strong, so the verdict is Very likely the same."
+        },
+        {
+          "who": "marcus@livesgroup.com",
+          "page": "new",
+          "variant": "3d",
+          "do": "Click **Check my request** and read the side-by-side table, then **Continue**.",
+          "notice": "'NUHS' with a free-mail address (gmail). A free-mail domain never counts. Only country and customer group agree, and both are weak, so the verdict is Possibly the same and Marcus is asked instead of being blocked."
+        },
+        {
+          "who": "marcus@livesgroup.com",
+          "page": "new",
+          "variant": "3f",
+          "do": "Click **Check my request** and read the side-by-side table.",
+          "notice": "Still free mail, but the postal code and the contact person (Mei Ling Lim, word order ignored) match the record in SAP. Two different groups agree and both are medium strength, so the verdict is back to Very likely the same."
+        },
+        {
+          "who": "marcus@livesgroup.com",
+          "page": "new",
+          "variant": "3h",
+          "do": "Click **Check my request** and read the side-by-side table.",
+          "notice": "A corporate email from the hospital's domain, but the country is Malaysia and the group is a distributor. Only one group (email) agrees and the country conflicts, so the quorum of two is not met: Possibly the same, a possible sister company."
+        },
+        {
+          "who": "marcus@livesgroup.com",
+          "page": "new",
+          "variant": "3e",
+          "do": "Click **Check my request** and read the side-by-side table.",
+          "notice": "The same name from a different company: another email domain, Malaysia, another group. The details disagree, so the verdict is Probably different. It is shown for information and the request is not stopped."
+        },
+        {
+          "who": "marcus@livesgroup.com",
+          "page": "new",
+          "variant": "3c",
+          "do": "Click **Check my request** and read the side-by-side table.",
+          "notice": "Fuzzy matching on the name itself: 'National University of Singapore' looks close to the hospital, but 'hospital' against 'university' is a clash, so the hospital is not flagged. The real match is National University of Singapore (C10031)."
+        }
+      ]
+    },
+    "S5": {
+      "label": "Wei Jie's inbox: nobody notices for 18 days",
+      "blurb": "Appendix B and C. A request sits with Finance and nobody sees it.",
+      "hint": "Wei Jie's request has been waiting and no one has noticed. Click the day buttons to move time forward: after 2 days an urgent email goes out, after 4 days a review meeting is booked, after 8 days the request is handed to a delegate.",
+      "page": "waiting",
+      "persona": "priya@livesgroup.com",
+      "steps": [
+        {
+          "who": "priya@livesgroup.com",
+          "page": "waiting",
+          "do": "Under **Try the 18-day wait**, click **2 days**, **4 days**, **8 days**, then **18 days**.",
+          "notice": "Wei Jie's request has been waiting and no one noticed. Watch the reminder email, the review meeting and the hand-over to the delegate appear."
+        },
+        {
+          "who": "supervisor@livesgroup.com",
+          "page": "waiting",
+          "do": "Look at the waiting list.",
+          "notice": "The Supervisor is the other person in the 4-day review meeting. Request names and timings only, never private values."
+        }
+      ]
+    },
+    "S6": {
+      "label": "Procurement Officer: onboarding a new supplier",
+      "blurb": "A new vendor with banking details needs Finance's check.",
+      "hint": "The Procurement Officer onboards a new supplier. Click Check my request: the vendor goes to the Finance Manager, who checks the terms and the banking details. Use the Demo button to become Wei Jie.",
+      "page": "new",
+      "persona": "procurement@livesgroup.com",
+      "domain": "VENDOR",
+      "payload": {
+        "CardName": "Meridian Lab Supplies Pte Ltd",
+        "LicTradNum": "201845678K",
+        "Address": "21 Science Park Road",
+        "ZipCode": "117586",
+        "CntctPrsn": "Daniel Ong",
+        "Phone1": "+65 6777 1234",
+        "BankCode": "Example Bank",
+        "BankAcct": "5550123456",
+        "SwiftCode": "EXMPSGSG",
+        "GroupNum": 2,
+        "U_Entity": "SPD"
+      },
+      "steps": [
+        {
+          "who": "procurement@livesgroup.com",
+          "page": "new",
+          "do": "Click **Check my request**, then **Send request**.",
+          "notice": "The Procurement Officer onboards a new supplier. The vendor goes to Finance."
+        },
+        {
+          "who": "weijie@livesgroup.com",
+          "page": "requests",
+          "do": "On **Meridian Lab Supplies Pte Ltd**, click **Approve**.",
+          "notice": "Payment terms are visible, the bank account is masked."
+        },
+        {
+          "who": "priya@livesgroup.com",
+          "page": "requests",
+          "do": "Open **SAP records**, then click **Create 'Meridian Lab Supplies Pte Ltd' in SAP** under Customers and vendors."
+        }
+      ]
+    },
+    "S7": {
+      "label": "IT / System Administrator: a new approval rule, no code",
+      "blurb": "A requirement changes. The IT administrator adds an approval rule on the dashboard, and the next request follows it.",
+      "hint": "The IT administrator adds a rule on the dashboard: any customer with a credit limit over 20000 also needs the Business Unit Head. No file, no code. Then a customer request follows the new rule.",
+      "page": "admin",
+      "persona": "it.admin@livesgroup.com",
+      "steps": [
+        {
+          "who": "it.admin@livesgroup.com",
+          "page": "admin",
+          "do": "Click **Add an 'also require' rule**. Pick **Customer**, click **Add a condition** and type **20000** as the credit limit value. Choose **Business Unit Head** in the approval dropdown, click **Add step**, then **Save to the draft**.",
+          "notice": "Three questions: who is it for (customers), anything extra (credit limit more than 20000), who approves (Business Unit Head). Nothing has changed for anyone yet: it is a draft."
+        },
+        {
+          "who": "it.admin@livesgroup.com",
+          "page": "admin",
+          "do": "Read the draft bar, then click **Apply the workflow**. Switch on **Advanced** to try a request or see the diagram.",
+          "notice": "The change is checked, compared and written to the audit trail. The forms and routing use it from the next request. No file was edited."
+        },
+        {
+          "who": "marcus@livesgroup.com",
+          "page": "new",
+          "prefill": true,
+          "do": "A customer with a $30,000 credit limit is ready. Click **Check my request**, then **Send request**.",
+          "notice": "Before the rule this would have gone only to the MDM Analyst. Now the Business Unit Head is added at the end."
+        },
+        {
+          "who": "priya@livesgroup.com",
+          "page": "requests",
+          "do": "On **Orion Medical Supplies Pte Ltd**, click **Approve**.",
+          "notice": "The MDM Analyst is the first step on the default route."
+        },
+        {
+          "who": "bu.head@livesgroup.com",
+          "page": "requests",
+          "do": "On **Orion Medical Supplies Pte Ltd**, look at the tracker, then click **Approve**.",
+          "notice": "This step exists only because of the rule just created on the dashboard."
+        }
+      ],
+      "domain": "CUSTOMER",
+      "payload": {
+        "CardName": "Orion Medical Supplies Pte Ltd",
+        "LicTradNum": "201988776K",
+        "GroupCode": 100,
+        "E_Mail": "accounts@orionmed.example",
+        "CreditLine": 30000,
+        "GroupNum": 1,
+        "U_Entity": "SPD",
+        "U_Country": "SG",
+        "Address": "12 Biomedical Way",
+        "ZipCode": "138632",
+        "CntctPrsn": "Grace Lim",
+        "Phone1": "+65 6777 1234"
+      }
+    }
+  },
+  "demo_guide": [
+    "Click the Demo button at the top right.",
+    "Pick a story. It loads the first person's case into the real screens.",
+    "Follow the step bar: it says who you are, what to click, and has a button to move to the next person."
+  ],
+  "models": {
+    "rolling_avg": {
+      "name": "Rolling average (today's method, kept only as the yardstick)",
+      "what": "Averages the last 6 to 12 months and projects that flat line forward. This is the traditional method described in the brief.",
+      "why": "Simple, familiar and hard to beat when demand is stable. It is the yardstick every other model is measured against.",
+      "watch": "It ignores both growth and the time of year, so it lags when volumes are rising or seasonal."
+    },
+    "linear_trend": {
+      "name": "Linear trend",
+      "what": "Draws a straight line through the last 6 to 12 months and extends it forward.",
+      "why": "Shows the direction of travel, which is useful for a steady grower or decliner and easy to explain.",
+      "watch": "On bumpy monthly volumes it exaggerates short-term swings and runs away over a long horizon. It was the least accurate here."
+    },
+    "damped_trend": {
+      "name": "Damped trend",
+      "what": "Smooths the recent months to find today's level and direction, then lets the growth fade out over time.",
+      "why": "Growth is rarely forever. The fade keeps longer forecasts sensible, and it needs only 6 months of history.",
+      "watch": "It does not know about the time of year, so seasonal peaks and dips are smoothed away."
+    },
+    "seasonal_level": {
+      "name": "Seasonal level",
+      "what": "Learns the yearly pattern from all countries and products together, removes it, averages the level, and puts the pattern back for each future month. No trend at all.",
+      "why": "Borrowing the pattern from the whole region gives even a 6 to 12 month series a sense of seasons. With no trend it does not over-react to noisy monthly volumes.",
+      "watch": "It assumes no real growth, so it will lag a market that is taking off."
+    },
+    "seasonal_trend": {
+      "name": "Seasonal trend",
+      "what": "The same regional yearly pattern, plus a damped trend on the level.",
+      "why": "Best when a market is both seasonal and genuinely growing or shrinking.",
+      "watch": "It needs enough history to tell growth from noise, and can chase noise on a short window."
+    },
+    "seasonal_growth": {
+      "name": "Own season + regional growth",
+      "what": "Learns each series' own yearly curve from all its history, takes a recent-weighted level from the 6 to 12 months chosen, and adds one growth rate shared by the whole region.",
+      "why": "Equipment, IVD and Consumables do not peak in the same months, and neither do countries, so one regional pattern blurs them. A single shared growth rate stays steady because it comes from every series, not one noisy line.",
+      "watch": "Needs at least 12 months of the series' own history to draw its curve, otherwise it steps down to the regional pattern. It also assumes the yearly shape is smooth and the growth keeps going."
+    },
+    "blend": {
+      "name": "Blend of all four",
+      "what": "Averages the four data-science models above.",
+      "why": "Different models make different mistakes, and averaging lets them cancel out. A steadier choice when no single model is clearly right.",
+      "watch": "It is rarely the best on any one series, and rarely the worst."
+    }
+  },
+  "intake_other": {
+    "card": "A question or follow-up", "icon": "forum", "card_help": "Not a new record? Chase a request, or ask how to do something.",
+    "heading": "A question or a follow-up",
+    "intro": "This form is only for asking for a new customer, vendor, item or cost center. A question, a chaser or a customer order is not a request, so it does not go to an approver. Pick what you are after:",
+    "status": "Check on a request I sent", "waiting": "See what is waiting on me", "record": "I do need a new record",
+    "ask": "Or ask how to do something", "placeholder": "For example: where is my request, or why was it rejected?",
+    "no_match": "I could not find an answer to that. Try different words, or press Help at the top right.",
+    "limits": "Customer purchase orders and enquiries are not entered here: they come from SAP and are separated in Sales insights, where only confirmed orders count towards the forecast."
+  },
+  "models_intro": "Every model works from 6 to 12 months of a series' own history. Pick the history length, the model and how far ahead to look. The comparison below shows how each one did on months we hid from it."
+}
