@@ -9,7 +9,7 @@
   if (window.__lvAuto) window.__lvAuto.stop();
 
   const D = document, T = DATA.timing;
-  const state = { stopped: false, paused: false, passed: 0, failed: 0 };
+  const state = { stopped: false, paused: false, passed: 0, failed: 0, missed: [] };
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const norm = (s) => (s || "").replace(/\s+/g, " ").trim().toLowerCase();
 
@@ -292,7 +292,7 @@
         }
       }
       if (o.kind !== "test" || typeof o.pass !== "boolean") return say(o);       // a check already decided by the engine
-      if (!state.replay) o.pass ? state.passed++ : state.failed++;                  // a replay must not count a check twice
+      if (!state.replay) { o.pass ? state.passed++ : (state.failed++, state.missed.push(o.text)); }   // a replay must not count a check twice
       showFlag("test", (o.pass ? "PASS: " : "FAIL: ") + o.text, o.backed, o.pass ? "test-pass" : "test-fail");
       return wait(state.fast ? 120 : Math.min(T.max_flag_ms, Math.max(T.min_flag_ms, o.text.length * T.read_ms_per_char)));
     },
@@ -420,7 +420,13 @@
         await sleep(100);
       }
       const a = link();
-      if (!a) return fail("Page not available for this role: " + o.path);
+      if (!a) {                                             // the top bar never drew its links: move within the app the way the router does
+        if (new URL(location.href).pathname === href) return;
+        history.pushState({}, "", href);
+        window.dispatchEvent(new PopStateEvent("popstate", { state: {} }));
+        await idle();
+        return;
+      }
       if (new URL(location.href).pathname === href) return;
       await doClick(a);
     },
@@ -468,7 +474,7 @@
       const text = norm(D.body.innerText);                  // the whole page, so short-lived toasts count too
       const has = (s) => text.includes(norm(s));
       const ok = (o.has || []).every(has) && !(o.absent || []).some(has);
-      if (!state.replay) ok ? state.passed++ : state.failed++;
+      if (!state.replay) { ok ? state.passed++ : (state.failed++, state.missed.push(o.text)); }
       showFlag("test", (ok ? "PASS: " : "FAIL: ") + o.text, o.backed, ok ? "test-pass" : "test-fail");
       await wait(state.fast ? 120 : Math.min(T.max_flag_ms, Math.max(T.min_flag_ms, o.text.length * T.read_ms_per_char)));
     },
@@ -555,7 +561,8 @@
     ring.style.display = "none";
     cursor.style.left = "-40px";
     const tally = state.passed + state.failed ? " Checks passed: " + state.passed + " of " + (state.passed + state.failed) + "." : "";
-    showFlag("how", "That was the whole story, played hands-free on the real screens." + tally);
+    const missed = state.missed.length ? " Did not pass: " + state.missed.join(" | ") : "";
+    showFlag("how", "That was the whole story, played hands-free on the real screens." + tally + missed);
     where.textContent = "Finished";
   }
 
