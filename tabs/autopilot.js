@@ -5,6 +5,7 @@
 (function () {
   const DATA = window.__lvAutoData;
   if (!DATA) return;
+  if (window.__lvAutoStopped === DATA.runId) return;                         // the viewer stopped this run: a page re-run must not restart it
   if (window.__lvAuto && window.__lvAuto.runId === DATA.runId) return;       // this run is already playing
   if (window.__lvAuto) window.__lvAuto.stop();
 
@@ -570,6 +571,7 @@
     runId: DATA.runId,
     stop() {
       state.stopped = true;
+      window.__lvAutoStopped = DATA.runId;
       clearInterval(follower);
       [cursor, ring, flagBox, panel, tag, style].forEach((e) => e.remove());
       if (window.__lvAuto === api) window.__lvAuto = null;
