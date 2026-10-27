@@ -1,5 +1,7 @@
 # Lives Group MDM & Analytics Platform (prototype)
 
+**Live demo:** https://lives-mdm-platform-m8elmfzg9kjup2dqsnuwz7.streamlit.app/
+
 A Streamlit prototype of two engines driven by one rules file, `config_rules.json`:
 
 1. **MDM engine**: a config-driven intake gate for SAP Business One master data (customers / vendors
