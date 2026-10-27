@@ -7,3 +7,7 @@ __pycache__/
 .DS_Store
 .env
 .claude/
+docs/
+CLAUDE.md
+KICKOFF_PROMPTS.md
+ai_prompt_sequence_v3.txt
