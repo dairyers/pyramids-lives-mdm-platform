@@ -91,6 +91,8 @@ def prepare(df, mapping, value_map, config, drop_duplicates=False):
         reason = reason.where(reason.notna() | ~bad, REJECT[name])
     cols = [c for c in ["date", "country", "product", "quantity", "record_type"] + cfg["optional"] if c in t.columns]
     dup = t.duplicated(subset=cols, keep="first") & reason.isna()
+    first = t.loc[reason.isna()].groupby(cols, dropna=False)["row"].transform("first")
+    t["duplicate_of"] = first.where(dup.loc[first.index])
     if drop_duplicates:
         reason = reason.where(reason.notna() | ~dup, REJECT["duplicate"])
     t["reason"] = reason

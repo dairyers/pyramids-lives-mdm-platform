@@ -125,6 +125,18 @@ def test_duplicates_are_flagged_and_only_dropped_when_asked():
     assert int(eg.reconcile(dropped["table"], "orders", CONFIG)["rows"].sum()) == len(df)
 
 
+def test_duplicates_can_be_listed_with_the_row_they_copy_before_deciding():
+    df = pd.concat([synthetic(14), synthetic(14).iloc[:3]], ignore_index=True)
+    n = len(synthetic(14))
+    for drop in (False, True):
+        res, _, _ = prepared(df, drop_duplicates=drop)
+        listed = res["table"][res["table"]["duplicate_of"].notna()]
+        assert len(listed) == 3
+        assert list(listed["duplicate_of"].astype(int)) == list(res["table"]["row"].iloc[:3].astype(int))
+        assert (listed["row"].astype(int) > n).all()
+    assert prepared(synthetic(14))[0]["table"]["duplicate_of"].isna().all()
+
+
 def test_gaps_short_history_outliers_and_mixed_units_are_reported_not_repaired():
     df = synthetic(30)
     df = df[~((df["country"] == "ZZ") & (df["product"] == "X1") & df["date"].str.startswith("2024-06"))]   # a missing month
