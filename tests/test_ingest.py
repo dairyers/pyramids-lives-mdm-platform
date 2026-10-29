@@ -47,7 +47,7 @@ def prepared(df, **kw):
 def test_template_headers_map_to_themselves():
     cols = list(pd.read_csv(ROOT / "data" / "stock_planning_template.csv").columns)
     m = eg.suggest_mapping(cols, CONFIG)
-    assert all(m[c] == c for c in cols) and len(cols) == 16
+    assert all(m[c] == c for c in cols) and len(cols) == 20
 
 
 def test_the_apps_own_sample_headers_are_recognised():
@@ -138,9 +138,11 @@ def test_gaps_short_history_outliers_and_mixed_units_are_reported_not_repaired()
 
 def test_optional_columns_unused_for_now_are_said_so():
     df = synthetic(14)
-    df["on_hand"] = 50.0
+    df["received_qty"] = 50.0
     res, _, _ = prepared(df)
-    assert any(i[1] == "Column on_hand" and "not used by the plan yet" in i[2] for i in res["issues"])
+    assert any(i[1] == "Column received_qty" and "not used by the plan yet" in i[2] for i in res["issues"])
+    df["on_hand"] = 50.0
+    assert not any(i[1] == "Column on_hand" for i in prepared(df)[0]["issues"])                               # stock is used now, so it is not reported as unused
 
 
 def test_same_file_same_mapping_gives_the_same_result():
@@ -203,3 +205,38 @@ def test_the_apps_own_sample_file_can_be_uploaded_too():
     values = eg.suggest_record_types(raw["RecordType"].unique(), CONFIG)
     res = eg.prepare(up, mapping, values, CONFIG)
     assert not res["blocking"] and int(eg.reconcile(res["table"], "orders", CONFIG)["rows"].sum()) == len(raw)
+
+
+# ----------------------------------------------------------------------------- current stock, stockout flags and price breaks from a file
+def test_the_latest_stock_figures_per_product_are_taken_from_the_file():
+    df = synthetic(14)
+    df["on_hand"] = np.arange(len(df), dtype=float)
+    df["on_order"] = 5.0
+    df.loc[df.index[-1], "on_hand"] = np.nan                                                              # the very last row has no stock figure
+    res, _, _ = prepared(df)
+    cur = eg.current_stock(res["table"])
+    assert len(cur) == 4 and set(cur.columns) == {"country", "product", "on_hand", "on_order"} and (cur["on_order"] == 5.0).all()
+    last_row = res["table"].sort_values(["date_parsed", "row"]).groupby(["country", "product"]).last()
+    assert cur.set_index(["country", "product"])["on_hand"].notna().all() and last_row["on_hand"].notna().sum() >= 3
+    assert eg.current_stock(prepared(synthetic(14))[0]["table"]).empty                                      # no stock column: nothing invented
+
+
+def test_stockout_flags_in_the_file_are_listed():
+    df = synthetic(14)
+    df["stockout_flag"] = 0
+    df.loc[[3, 40], "stockout_flag"] = 1
+    flags = eg.stockout_flags(prepared(df)[0]["table"])
+    assert len(flags) == 2 and all(len(f) == 3 for f in flags)
+
+
+def test_price_breaks_are_read_from_the_template_sheet():
+    wb = load_workbook(ROOT / "data" / "stock_planning_template.xlsx")
+    ws = wb["Price breaks"]
+    for i, row in enumerate([["ALL", "A", 300, 18.0], ["ALL", "A", 600, 16.0], ["SG", "A", 100, 19.0], ["ALL", "B", "x", 5.0], ["ALL", "B", 50, -1]], start=2):
+        for j, v in enumerate(row, start=1):
+            ws.cell(row=i, column=j, value=v)
+    buf = io.BytesIO()
+    wb.save(buf)
+    got = eg.read_price_breaks(buf.getvalue(), "mine.xlsx")
+    assert got == {("ALL", "A"): [(300.0, 18.0), (600.0, 16.0)], ("SG", "A"): [(100.0, 19.0)]}                 # bad rows ignored
+    assert eg.read_price_breaks(b"x", "mine.csv") == {} and eg.read_price_breaks((ROOT / "data" / "stock_planning_template.xlsx").read_bytes(), "t.xlsx") == {}

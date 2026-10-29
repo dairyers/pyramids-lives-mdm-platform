@@ -20,7 +20,8 @@ COLUMNS = [
     ("product", True, "text", "code", "Product line or item code. One consistent code per product.", "A"),
     ("quantity", True, "number", "units", "Units requested or ordered. Zero or more. No units in the cell, just the number.", "120"),
     ("record_type", True, "list", "", "purchase_request, order, mdm_setup or other. mdm_setup rows are kept out of demand.", "order"),
-    ("on_hand", False, "number", "units", "Stock on hand at the end of that month. Lets us find real stockouts.", "340"),
+    ("on_hand", False, "number", "units", "Stock on hand right now (the latest row for each product and country is used for Today's actions) or at month end.", "340"),
+    ("on_order", False, "number", "units", "Units already ordered from suppliers and not yet received.", "200"),
     ("stockout_flag", False, "0 or 1", "", "1 if the product was out of stock at any point that month, otherwise 0.", "0"),
     ("order_date", False, "date", "YYYY-MM-DD", "Date you placed a supplier order. Lets us estimate lead time.", "2026-02-01"),
     ("receipt_date", False, "date", "YYYY-MM-DD", "Date that supplier order arrived.", "2026-03-04"),
@@ -31,13 +32,17 @@ COLUMNS = [
     ("order_cost", False, "number", "currency per order", "Cost of placing one supplier order (admin, freight, handling).", "85.00"),
     ("pack_size", False, "number", "units", "Orders must be a multiple of this.", "24"),
     ("moq", False, "number", "units", "Smallest quantity the supplier will accept.", "100"),
+    ("freight_per_unit", False, "number", "currency per unit", "Shipping cost for each unit. Leave blank if shipping is already in the price.", "1.20"),
+    ("freight_per_order", False, "number", "currency per order", "Shipping or customs cost for one order, however big.", "150.00"),
+    ("free_shipping_above", False, "number", "currency per order", "Order value at or above which per-order shipping is free.", "5000.00"),
 ]
 EXAMPLE_ROWS = [
     ["2026-01-12", "SG", "A", 120, "order"],
     ["2026-01-20", "SG", "A", 40, "purchase_request"],
     ["2026-01-25", "MY", "C", 500, "order"],
 ]
-NUMBER_COLS = {"quantity", "on_hand", "received_qty", "unit_cost", "price", "salvage", "order_cost", "pack_size", "moq"}
+NUMBER_COLS = {"quantity", "on_hand", "on_order", "received_qty", "unit_cost", "price", "salvage", "order_cost", "pack_size", "moq",
+               "freight_per_unit", "freight_per_order", "free_shipping_above"}
 DATE_COLS = {"date", "order_date", "receipt_date"}
 
 
@@ -100,9 +105,24 @@ def build(path):
              "3. Use one unit for quantity across the whole sheet (for example units, not a mix of units and boxes).",
              "4. Leave optional cells blank when you do not have the value. Do not type 0, n/a or - for unknown.",
              "5. A product with fewer than 12 months of rows will get a simpler forecast and a warning.",
-             "6. The Example sheet is for reading only. It is not read when you upload."]
+             "6. The Example sheet is for reading only. It is not read when you upload.",
+             "7. Quantity discounts go on the Price breaks sheet, one row per break. Shipping goes in the freight columns on the Data sheet."]
     for k, text in enumerate(notes, start=len(COLUMNS) + 3):
         guide.cell(row=k, column=1, value=text).font = Font(bold=bool(text) and k == len(COLUMNS) + 4)
+
+    pb = wb.create_sheet("Price breaks")
+    for j, name in enumerate(["country", "product", "from_quantity", "unit_price"], start=1):
+        c = pb.cell(row=1, column=j, value=name)
+        c.font, c.fill = Font(bold=True, color="FFFFFF"), required_fill
+        pb.column_dimensions[c.column_letter].width = 18
+    pb["F1"] = "Optional. One row per price break. country can be ALL to apply to every country. from_quantity is the order size where the price starts."
+    pb["F2"] = "Example: product A, from 300 units the price is 18.00, from 600 units it is 16.00."
+    pb.freeze_panes = "A2"
+    for col in ("C", "D"):
+        dv = DataValidation(type="decimal", operator="greaterThanOrEqual", formula1="0", allow_blank=True, showErrorMessage=True, errorStyle="stop",
+                            errorTitle="Number needed", error="Enter a number that is zero or more.")
+        pb.add_data_validation(dv)
+        dv.add(f"{col}2:{col}1000")
 
     ex = wb.create_sheet("Example")
     ex.cell(row=1, column=1, value="Example only: not read on upload").font = Font(bold=True, color="AA0808")

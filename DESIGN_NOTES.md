@@ -31,10 +31,26 @@ Where the spec left a choice, the more conservative option was taken and is list
 - `on_hand`, `stockout_flag` and `received_qty` are read and reported as present but not used.
 - Uploaded results are labelled with the file name, and the sample-data warning is replaced by an upload warning.
 
-## Not built yet
-- Stockout flagging and confirmation, and the efficacy replay with baselines.
-- Assumption levels for country alone and product alone (global and per country-product are built).
+## Also built since the first version
+- **Overview, Replay and What-if lab.** The tab opens on an Overview. `engine_replay.py` rebuilds the plan each month from earlier months only, runs it on the demand that
+  followed, and compares it with a flat average (no spare stock) and a moving average plus a 20% buffer. Ranges across products come from a bootstrap; nothing is called
+  better or worse unless the range excludes zero. The first months use a wide standard margin because there is no forecast-miss history yet, and the screen says so.
+- **What should we do?** `engine_advice.py` ranks recommendations by what matters (cut costs, free up cash, never run out, or all) and how much chance of running short is
+  acceptable. A recommendation that adds risk beyond that comfort level is never shown. Every number comes from planning the affected products again with the change.
+- **Today's actions.** `engine_actions.py` compares stock on hand plus on order with the reorder level: out of stock, order now (whole orders that clear the level), order
+  soon (never wider than one order above it), fine, or more than needed (more than two orders above it). Blank stock is "Enter current stock", never guessed. The example
+  figures are seeded, labelled, and never presented as real.
+- **Shipping, price breaks and free shipping.** Holding is charged on the landed price (price plus shipping per unit); shipping per order is added to the cost per order.
+  `best_order` tries a fine grid, each break, the best size inside each tier and the size that reaches free shipping, within pack size, minimum order and caps, and keeps the
+  cheapest total. With nothing entered the plan is identical to before. Both "every unit gets the lower price" and "only units above each break" are supported.
+- **Possible stockouts.** Months far below the level and season the history predicts are listed (and any the file marks). Nothing changes until confirmed; a confirmed month is
+  replaced by the expected demand, and everything downstream (forecast, plan, replay) uses the adjusted history. The reconciliation shows the adjustment.
+- **Per product and country numbers.** One tab per product with a row per country; starting answers can be scoped to one country and product.
 
+## Not built
+- Perishable items, shelf life and newsvendor ordering (not needed for the sample, and the brief does not ask for them).
+- Stock-out repair by excluding months from the fit (replacing them is built).
+- The efficacy replay does not use the user's own current rule as a baseline (the two simple rules stand in for it).
 ## Limits to keep in view
 - 24 months of history: at most 11 backtest windows for a 2-month protection interval, and 1 window above 7 months.
 - Sample data was generated to match the forecast model, so results on it say nothing about real-world accuracy.

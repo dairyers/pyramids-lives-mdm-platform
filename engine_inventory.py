@@ -16,15 +16,19 @@ import engine_analytics as ea
 
 SOURCES = ("entered", "estimated", "derived", "default")
 ASSUMPTIONS = ["lead_time_months", "review_period_months", "service_level", "holding_rate", "order_cost", "unit_cost",
-               "price", "salvage", "pack_size", "moq", "storage_cap", "budget_cap", "growth_override_pct"]
+               "price", "salvage", "pack_size", "moq", "storage_cap", "budget_cap", "growth_override_pct", "demand_change_pct",
+               "freight_per_unit", "freight_per_order", "free_shipping_above"]
 LABELS = {"lead_time_months": "Lead time", "review_period_months": "Review period", "service_level": "Service level",
           "holding_rate": "Holding rate", "order_cost": "Ordering cost", "unit_cost": "Unit cost", "price": "Selling price",
           "salvage": "Salvage value", "pack_size": "Pack size", "moq": "Minimum order quantity",
-          "storage_cap": "Storage cap", "budget_cap": "Budget cap", "growth_override_pct": "Extra growth"}
+          "storage_cap": "Storage cap", "budget_cap": "Budget cap", "growth_override_pct": "Extra growth",
+          "demand_change_pct": "Demand change vs forecast", "freight_per_unit": "Shipping per unit",
+          "freight_per_order": "Shipping per order", "free_shipping_above": "Free shipping above"}
 UNITS = {"lead_time_months": "months", "review_period_months": "months", "service_level": "share", "holding_rate": "per year",
          "order_cost": "USD per order", "unit_cost": "USD per unit", "price": "USD per unit", "salvage": "USD per unit",
          "pack_size": "units", "moq": "units", "storage_cap": "units", "budget_cap": "USD per order",
-         "growth_override_pct": "% per year"}
+         "growth_override_pct": "% per year", "demand_change_pct": "% vs forecast", "freight_per_unit": "USD per unit",
+         "freight_per_order": "USD per order", "free_shipping_above": "USD per order"}
 
 
 def inv(config):
@@ -213,7 +217,7 @@ def ratio_draws(info, config, n, rng, k=1.0):
 
 
 # ============================================================================ assumptions
-FILE_COLUMNS = ("unit_cost", "price", "salvage", "order_cost", "pack_size", "moq")
+FILE_COLUMNS = ("unit_cost", "price", "salvage", "order_cost", "pack_size", "moq", "freight_per_unit", "freight_per_order", "free_shipping_above")
 
 
 def _estimates(clean_df, config, lead_days=None):
@@ -281,6 +285,13 @@ def resolve_assumptions(config, key, entered=None, overrides=None, estimates=Non
     return out
 
 
+def baseline_assumptions(config, clean_df, entered=None, lead_days=None, overrides=None):
+    """The assumptions each country x product row starts with before any row-specific change: {(country, product): {name:
+    {value, unit, source, note}}}. The screen shows these in an editable grid, so every row has its own visible values."""
+    est = _estimates(clean_df, config, lead_days)
+    return {k: resolve_assumptions(config, k, entered, (overrides or {}).get(k), est.get(k)) for k in demand_series(clean_df)}
+
+
 def months_from_days(days, config):
     """Days to months, shown to the user as 'N days = M months'."""
     return days / inv(config)["days_per_month"]
@@ -342,7 +353,7 @@ def constrain_quantity(q, D, K, H, pack=None, moq=None, storage_cap=None, budget
     return q, notes
 
 
-def plan_series(key, path, info, a, config, rng, history=None, k=1.0, periods=None):
+def plan_series(key, path, info, a, config, rng, history=None, k=1.0, periods=None, breaks=None, dtype=None):
     """The plan for one country x product. `path` is the monthly forecast (planning horizon plus the protection interval),
     `info` the error source, `a` the resolved assumptions. Returns (row dict, monthly DataFrame, trade-off rows)."""
     cfg = inv(config)
@@ -354,6 +365,7 @@ def plan_series(key, path, info, a, config, rng, history=None, k=1.0, periods=No
     need = int(math.ceil(P - 1e-9))
     path = np.asarray(path, dtype=float)
     growth = float(val["growth_override_pct"] or 0.0) / 100.0
+    path = path * (1.0 + float(val["demand_change_pct"] or 0.0) / 100.0)                 # what-if: more or less demand than forecast
     path = path * (1.0 + growth) ** (np.arange(1, len(path) + 1) / 12.0)
     starts = max(min(horizon, len(path) - need + 1), 1)
     f_int = np.array([interval_sum(path, s, P) for s in range(starts)])
@@ -365,8 +377,11 @@ def plan_series(key, path, info, a, config, rng, history=None, k=1.0, periods=No
     ltd_mean, rop, ss = float(mean_m[0]), float(rop_m[0]), float(ss_m[0])
     sigma = float(np.std(f_int[0] * draws))
     C, H_rate = val["unit_cost"], float(val["holding_rate"])
-    H = H_rate * C if C is not None else None
+    fpu, fpo = float(val["freight_per_unit"] or 0.0), float(val["freight_per_order"] or 0.0)
+    free_above = val["free_shipping_above"]
+    H = H_rate * (C + fpu) if C is not None else None             # holding is charged on the landed price: price plus shipping per unit
     K = float(val["order_cost"])
+    Kt = K + fpo                                                   # one order: its cost plus its shipping
     notes, flags = [], []
     if info["source"] != "own windows":
         flags.append(f"Error {info['source']} ({info['windows']} own windows)")
@@ -378,15 +393,21 @@ def plan_series(key, path, info, a, config, rng, history=None, k=1.0, periods=No
         flags.append("Ordering cost is a placeholder")
     if a["holding_rate"]["source"] == "default":
         flags.append("Holding rate is a default")
-    q = d = cycle = None
+    q = d = cycle = q_star = econ = eco = saving = None
     orders = turnover = None
     if H is not None and H > 0:
-        q_star, d, cycle = eoq_orders(path, K, H, config)
-        q, qn = constrain_quantity(q_star, d, K, H, val["pack_size"], val["moq"], val["storage_cap"], val["budget_cap"], C)
+        q_star, d, cycle = eoq_orders(path, Kt, H, config)
+        econ = {"D": d, "K": K, "fpo": fpo, "fpu": fpu, "hrate": H_rate, "ss": ss, "base_price": float(C), "breaks": [(m, p) for m, p in (breaks or [])],
+                "dtype": dtype or cfg["discount"]["default"], "free_above": free_above}
+        if econ["breaks"] or free_above is not None:
+            q, qn, saving = best_order(econ, q_star, val, config)
+        else:
+            q, qn = constrain_quantity(q_star, d, Kt, H, val["pack_size"], val["moq"], val["storage_cap"], val["budget_cap"], C)
         notes += qn
         if q and q > 0 and d:
             orders = d / q
             cycle = q / d * 12.0
+            eco = order_economics(q, econ)
             if L > cycle:
                 notes.append(f"Lead time ({L:g} months) is longer than the order cycle ({cycle:.1f} months): orders are placed against inventory position (on hand plus on order), so about {math.ceil(L / cycle)} orders are in transit at once.")
     else:
@@ -396,14 +417,25 @@ def plan_series(key, path, info, a, config, rng, history=None, k=1.0, periods=No
         turnover = d / avg_inv
     if sum(path[:max(1, min(12, len(path)))]) <= 0:
         flags.append("No forecast demand")
+    price_used = eco["price"] if eco else (float(C) if C is not None else None)
+    landed = price_used + fpu if price_used is not None else None
     row = {"country": key[0], "product": key[1], "forecast_next_12m": float(path[:12].sum()),
            "protection_months": P, "lead_time_demand": ltd_mean, "sigma_over_interval": sigma,
            "safety_stock": ss, "reorder_point": rop, "order_quantity": q, "orders_per_year": orders,
-           "average_inventory_units": avg_inv, "average_inventory_value": avg_inv * C if avg_inv is not None and C else None,
-           "cash_per_order": q * C if q is not None and C else None, "turnover": turnover,
-           "yearly_cost": (K * orders + H * avg_inv) if orders is not None and H else None,
+           "average_inventory_units": avg_inv, "average_inventory_value": avg_inv * landed if avg_inv is not None and landed else None,
+           "cash_per_order": q * landed if q is not None and landed else None, "turnover": turnover,
+           "days_of_stock": 365.25 / turnover if turnover else None,
+           "yearly_cost": (eco["ordering"] + eco["holding"]) if eco else None,
+           "ordering_cost_year": eco["ordering"] if eco else None,
+           "holding_cost_year": eco["holding"] if eco else None,
+           "annual_demand": d, "eoq_unconstrained": q_star, "unit_cost": C, "order_cost": K, "holding_rate": H_rate,
+           "holding_per_unit_year": H_rate * landed if landed else H,
+           "purchase_cost_year": eco["purchases"] if eco else (d * C if d is not None and C is not None else None),
+           "freight_unit_cost_year": eco["freight_unit"] if eco else None, "price_used": price_used, "savings_vs_plain_order": saving,
+           "total_cost_year": eco["total"] if eco else None,
+           "lead_time_months": L, "review_period_months": R, "demand_ratio_at_service": q_alpha, "demand_ratio_mean": mean_r,
            "service_level": alpha, "stockout_risk_target": 1.0 - alpha, "error_source": info["source"],
-           "backtest_windows": info["windows"], "flags": "; ".join(flags), "notes": " ".join(notes)}
+           "backtest_windows": info["windows"], "flags": "; ".join(flags), "notes": " ".join(notes), "econ": econ}
     periods = periods if periods is not None else pd.date_range(pd.Timestamp.today().normalize().replace(day=1), periods=len(path), freq="MS")
     q05, q95 = float(np.quantile(draws, 0.05)), float(np.quantile(draws, 0.95))
     months = pd.DataFrame({"country": key[0], "product": key[1], "period": list(periods)[:starts], "forecast": path[:starts],
@@ -419,16 +451,236 @@ def plan_series(key, path, info, a, config, rng, history=None, k=1.0, periods=No
     return row, months, trade
 
 
+# ============================================================================ prices, shipping and discounts
+def _edges(e):
+    """Price tiers as [(from quantity, price per unit)], starting at 0 with the base price unless a break at 0 is given."""
+    t = sorted((float(m), float(p)) for m, p in (e.get("breaks") or []) if m is not None and p is not None and float(p) > 0 and float(m) >= 0)
+    if not t or t[0][0] > 0:
+        return [(0.0, float(e["base_price"]))] + t
+    return t
+
+
+def price_at(Q, e):
+    """The price per unit for an order of Q. With 'all_units' the whole order gets the price of the highest break it reaches; with
+    'incremental' each unit is priced by the tier it falls in, so the result is the average price of the order."""
+    edges = _edges(e)
+    if len(edges) == 1:
+        return edges[0][1]
+    if e.get("dtype") == "incremental":
+        total = 0.0
+        for i, (lo, p) in enumerate(edges):
+            hi = edges[i + 1][0] if i + 1 < len(edges) else float("inf")
+            total += max(min(Q, hi) - lo, 0.0) * p
+        return total / Q if Q > 0 else edges[0][1]
+    price = edges[0][1]
+    for lo, p in edges:
+        if Q >= lo:
+            price = p
+    return price
+
+
+def order_economics(Q, e):
+    """Yearly cost of ordering Q at a time, with prices, shipping and spare stock. `e` holds D (units a year), K (cost per order),
+    fpo and fpu (shipping per order and per unit), hrate (holding rate), ss (spare stock), base_price, breaks, dtype and free_above
+    (shipping per order is waived for orders worth at least this). Returns purchases, shipping per unit, ordering (cost per order plus
+    any shipping per order), holding (on the landed price) and the total."""
+    if Q is None or Q <= 0:
+        return None
+    price = price_at(Q, e)
+    ship = 0.0 if (e.get("free_above") is not None and Q * price >= e["free_above"]) else e["fpo"]
+    purchases, freight_unit = e["D"] * price, e["D"] * e["fpu"]
+    ordering = (e["K"] + ship) * e["D"] / Q
+    holding = e["hrate"] * (price + e["fpu"]) * (Q / 2.0 + e["ss"])
+    return {"price": price, "ship_per_order": ship, "purchases": purchases, "freight_unit": freight_unit, "ordering": ordering, "holding": holding,
+            "ordering_plus_holding": ordering + holding, "total": purchases + freight_unit + ordering + holding}
+
+
+def best_order(e, q_star, val, config):
+    """The cheapest order size when prices step down with quantity or shipping is waived above a value. Every sensible size is tried (a fine
+    grid, each price break, the best size inside each tier, and the size that reaches free shipping), respecting pack size, minimum order
+    and the caps, and the one with the lowest total yearly cost is taken. Returns (Q, notes, saving against ordering the plain EOQ)."""
+    D, base = e["D"], e["base_price"]
+    pack, moq, scap, bcap = val["pack_size"], val["moq"], val["storage_cap"], val["budget_cap"]
+    edges = _edges(e)
+    cand = list(np.linspace(max(1.0, 0.2 * q_star), max(4.0 * q_star, 1.5 * edges[-1][0], 10.0), inv(config)["discount"]["grid_points"]))
+    cand += [m for m, _ in edges if m > 0]
+    for _, p in edges:
+        hh = e["hrate"] * (p + e["fpu"])
+        if hh > 0 and D > 0:
+            cand.append(math.sqrt(2.0 * D * (e["K"] + e["fpo"]) / hh))
+        if e.get("free_above") and p > 0:
+            cand.append(e["free_above"] / p)
+    variants = set()
+    for q in cand:
+        if q <= 0:
+            continue
+        for x in ([math.floor(q / pack) * pack, math.floor(q / pack) * pack + pack] if pack and pack > 0 else [q]):
+            if x <= 0:
+                continue
+            if moq and x < moq:
+                x = math.ceil(moq / pack) * pack if pack and pack > 0 else moq
+            variants.add(round(float(x), 6))
+    feasible = [x for x in variants if (scap is None or x <= scap + 1e-9) and (bcap is None or x * price_at(x, e) <= bcap + 1e-9)]
+    plain, plain_notes = constrain_quantity(q_star, D, e["K"] + e["fpo"], e["hrate"] * (base + e["fpu"]), pack, moq, scap, bcap, base)
+    if not feasible:
+        return plain, plain_notes, None
+    best = min(feasible, key=lambda x: order_economics(x, e)["total"])
+    saving = None
+    notes = []
+    if plain and plain > 0:
+        saving = order_economics(plain, e)["total"] - order_economics(best, e)["total"]
+        price_b, ec = price_at(best, e), order_economics(best, e)
+        if saving > 0.5 and abs(price_b - base) > 1e-9:
+            notes.append(f"Order {best:,.0f} units to pay {price_b:,.2f} per unit instead of {base:,.2f}: saves about {saving:,.0f} USD a year against the plain order of {plain:,.0f}.")
+        elif saving > 0.5 and e["fpo"] and ec["ship_per_order"] == 0:
+            notes.append(f"Order {best:,.0f} units so the order is big enough for free shipping: saves about {saving:,.0f} USD a year against the plain order of {plain:,.0f}.")
+        if abs(best - plain) > 1e-6 and saving <= 0.5:
+            notes.append("The plain order size is already the cheapest allowed.")
+    return best, notes, saving
+
+
+# ============================================================================ the order size and its cost
+def total_cost(D, K, H, C, Q, SS=0.0):
+    """Yearly cost of ordering Q at a time: purchases D x C, ordering K x D / Q, holding H x (Q / 2 + SS), where H is the
+    holding cost of one unit for a year and SS the spare stock that is always on the shelf. Returns a dict, or None when Q <= 0."""
+    if Q is None or Q <= 0:
+        return None
+    purchases, ordering, holding = D * C, K * D / Q, H * (Q / 2.0 + SS)
+    return {"purchases": purchases, "ordering": ordering, "holding": holding, "total": purchases + ordering + holding,
+            "ordering_plus_holding": ordering + holding}
+
+
+def cost_curve(row, points=70):
+    """Yearly cost against the size of each order, for one plan row: the U shape that the order quantity sits at the bottom of. Prices,
+    shipping and any quantity discount come from the row's own economics, so the curve steps where a price break is reached. Columns:
+    order_quantity, ordering, holding, ordering_plus_holding, purchases, total. The grid always contains the chosen order quantity and the
+    unconstrained EOQ, so both can be marked. Empty when the row has no cost inputs."""
+    cols = ["order_quantity", "ordering", "holding", "ordering_plus_holding", "purchases", "total"]
+    e = row.get("econ")
+    need = ("order_quantity", "eoq_unconstrained")
+    if not isinstance(e, dict) or any(row.get(k) is None or pd.isna(row.get(k)) for k in need) or row["order_quantity"] <= 0 or row["eoq_unconstrained"] <= 0:
+        return pd.DataFrame(columns=cols)
+    q, qs = float(row["order_quantity"]), float(row["eoq_unconstrained"])
+    breaks = [m for m, _ in _edges(e) if m > 0]
+    top = 3.0 * max(q, qs, *(1.3 * b for b in breaks)) if breaks else 3.0 * max(q, qs)
+    grid = np.unique(np.concatenate([np.linspace(max(1.0, 0.2 * min(q, qs)), top, points), [q, qs], breaks, [b - 1e-6 for b in breaks if b > 1]]))
+    rows = []
+    for g in grid:
+        eco = order_economics(float(g), e)
+        rows.append({"order_quantity": g, "ordering": eco["ordering"], "holding": eco["holding"], "ordering_plus_holding": eco["ordering_plus_holding"],
+                     "purchases": eco["purchases"] + eco["freight_unit"], "total": eco["total"]})
+    return pd.DataFrame(rows)[cols]
+
+def inventory_profile(path, q, rop, ss, lead_months, review_months, config, demand_scale=1.0, months=12, start=None):
+    """A day-by-day picture of the stock under the plan, from the monthly forecast `path`. Start: one full order cycle, with stock
+    at the reorder level plus one order. Each day demand is the month's forecast spread evenly (times demand_scale). Stock is
+    checked every review_months (every day if 0): when on hand plus on order is at or below the reorder point, whole
+    multiples of q are ordered, and they arrive after the lead time. Stock cannot go below zero; the unmet part is counted
+    as shortage. Returns a DataFrame: date, on_hand, position (on hand plus on order), shortage (units short that day)."""
+    dpm = inv(config)["days_per_month"]
+    days = int(round(months * dpm))
+    lead = max(int(round(lead_months * dpm)), 0)
+    gap = max(int(round(review_months * dpm)), 1) if review_months and review_months > 0 else 1
+    path = np.asarray(path, dtype=float)
+    on_hand, pipeline, shortage = float(max(rop, ss) + q), [], 0.0
+    out = []
+    t0 = pd.Timestamp(start) if start is not None else pd.Timestamp.today().normalize().replace(day=1)
+    for day in range(days):
+        for arrive, qty in [p for p in pipeline if p[0] == day]:
+            on_hand += qty
+        pipeline = [p for p in pipeline if p[0] > day]
+        month = min(int(day / dpm), len(path) - 1)
+        need = max(path[month], 0.0) / dpm * demand_scale
+        served = min(on_hand, need)
+        on_hand -= served
+        short = need - served
+        position = on_hand + sum(qty for _, qty in pipeline)
+        if day % gap == 0 and q > 0 and position <= rop:
+            lots = math.ceil((rop - position) / q + 1e-9)
+            pipeline.append((day + max(lead, 1), lots * q))
+            position += lots * q
+        out.append({"date": t0 + pd.Timedelta(days=day), "on_hand": on_hand, "position": position, "shortage": short})
+    return pd.DataFrame(out)
+
+
+# ============================================================================ possible stockouts in the history
+def stockout_candidates(clean_df, config, extra=None):
+    """Months where demand fell well below what the series' usual level and season predict, which may mean the product ran out
+    rather than that nobody wanted it. For each country x product: the usual level is the median of the previous level_months months
+    after removing the pooled seasonal pattern, and a month is flagged when it is under low_fraction of level x seasonal factor.
+    `extra` is an optional list of (country, product, month) the user's own file marks as stockouts: they are always listed (kind
+    'marked in your file'), with what was expected for them. Returns a DataFrame: country, product, month, actual, expected, ratio,
+    kind ('no sales', 'low sales' or 'marked in your file'). Nothing is changed by this."""
+    so = inv(config)["stockout"]
+    cols = ["country", "product", "month", "actual", "expected", "ratio", "kind"]
+    series = demand_series(clean_df)
+    if not series:
+        return pd.DataFrame(columns=cols)
+    season = ea.seasonal_index(clean_df, config)
+    marked = {(c, p, pd.Timestamp(m)) for c, p, m in (extra or [])}
+    rows = []
+    for key, s in series.items():
+        v = s.to_numpy(dtype=float)
+        fac = np.array([season[m.month] if season else 1.0 for m in s.index])
+        des = v / np.where(fac > 0, fac, 1.0)
+        for i in range(so["min_level_months"], len(v)):
+            level = float(np.median(des[max(0, i - so["level_months"]):i]))
+            expected = level * fac[i]
+            flagged = (key[0], key[1], s.index[i]) in marked
+            if expected > 0 and (v[i] < so["low_fraction"] * expected or flagged):
+                kind = "marked in your file" if flagged else ("no sales" if v[i] <= 0 else "low sales")
+                rows.append({"country": key[0], "product": key[1], "month": s.index[i], "actual": v[i], "expected": expected, "ratio": v[i] / expected, "kind": kind})
+    return pd.DataFrame(rows, columns=cols)
+
+
+def apply_repairs(clean_df, repairs):
+    """A copy of the demand rows in which each confirmed month is replaced by what was expected. `repairs` is a list of (country, product,
+    month, new_total). Rows already in that month are scaled so they add up to new_total (value scaled in step); a month with no rows
+    gets one added row, marked 'ADJUSTED'. The original frame is never changed. With no repairs the same data comes back."""
+    if not repairs or clean_df is None or clean_df.empty:
+        return clean_df
+    df = clean_df.copy()
+    df["Quantity"] = df["Quantity"].astype(float)                    # repaired months are rarely whole numbers
+    extra = []
+    for country, product, month, target in repairs:
+        month = pd.Timestamp(month)
+        sel = (df["U_Country"] == country) & (df["U_ProductLine"] == product) & (df["YearMonth"] == month)
+        have = float(df.loc[sel, "Quantity"].sum())
+        if sel.any() and have > 0:
+            factor = float(target) / have
+            df.loc[sel, "Quantity"] = df.loc[sel, "Quantity"] * factor
+            if "LineTotal_USD" in df:
+                df.loc[sel, "LineTotal_USD"] = df.loc[sel, "LineTotal_USD"] * factor
+        else:
+            mine = df[(df["U_Country"] == country) & (df["U_ProductLine"] == product)]
+            if mine.empty:
+                continue
+            row = mine.iloc[-1].copy()
+            price = float((mine["LineTotal_USD"] / mine["Quantity"].where(mine["Quantity"] > 0)).median()) if "LineTotal_USD" in mine and (mine["Quantity"] > 0).any() else float("nan")
+            row["Quantity"], row["DocDate"], row["YearMonth"] = float(target), month + pd.Timedelta(days=14), month
+            if "LineTotal_USD" in row.index:
+                row["LineTotal_USD"] = float(target) * price if not np.isnan(price) else np.nan
+            for c in ("CardCode", "CardName"):
+                if c in row.index:
+                    row[c] = "ADJUSTED"
+            extra.append(row)
+    if extra:
+        df = pd.concat([df, pd.DataFrame(extra)], ignore_index=True)
+    return df.sort_values(["YearMonth", "U_Country", "U_ProductLine"], kind="stable").reset_index(drop=True)
+
 # ============================================================================ the whole plan
 def build_plan(raw_df, config, basis=None, entered=None, overrides=None, horizon=None, model=None, lookback=None,
                simulations=None, seed=None, now=None, caches=None, demand=None, data_label=None, data_id="sample",
-               lead_days=None):
+               lead_days=None, only=None, price_breaks=None, discount_type=None):
     """Runs every stage and returns a dict:
       table (one row per country x product), monthly (reorder point by month), tradeoff (90/95/99 % service),
       forecast (the monthly forecast used), assumptions (the log: scope, name, value, unit, source, note, timestamp),
       recon (row reconciliation), diagnostics (seed, runs, coverage, error sources, warnings, data source).
     `entered` holds global assumption values (None = blank), `overrides` {(country, product): {name: value}}.
-    `caches` is an optional dict that stores the expensive steps between calls (the UI passes a cached lookup)."""
+    `caches` is an optional dict that stores the expensive steps between calls (the UI passes a cached lookup).
+    `price_breaks` is {(country, product): [(from quantity, price per unit), ...]} and `discount_type` is "all_units" or "incremental".
+    `only` is an optional list of (country, product) to plan; the others are skipped, and the numbers for those that are planned
+    are identical to a full run (each series keeps its place in the random stream)."""
     cfg = inv(config)
     cfg_run = {**config, "analytics": {**config["analytics"], "inventory": {**cfg, "simulations": simulations or cfg["simulations"],
                                                                          "seed": cfg["seed"] if seed is None else seed}}}
@@ -457,6 +709,8 @@ def build_plan(raw_df, config, basis=None, entered=None, overrides=None, horizon
     tables, monthlies, trades, fc_rows, scope_diag = [], [], [], [], {}
     alpha0 = float(next(iter(resolved.values()))["service_level"]["value"]) if resolved else cfg["defaults"]["service_level"]["value"]
     for idx, key in enumerate(keys):
+        if only is not None and key not in only:
+            continue
         a = resolved[key]
         P = round(a["lead_time_months"]["value"] + a["review_period_months"]["value"], 1)
         key_err = ("errors", data_id, basis, model, lookback, P)
@@ -473,7 +727,8 @@ def build_plan(raw_df, config, basis=None, entered=None, overrides=None, horizon
         periods = f.loc[f["forecast"].notna(), "period"].tolist()
         info = error_source(errs, cfg_run, key)
         rng = np.random.default_rng([cfg["seed"], idx])
-        row, months, trade = plan_series(key, path, info, a, cfg_run, rng, k=cal["k"], periods=periods)
+        row, months, trade = plan_series(key, path, info, a, cfg_run, rng, k=cal["k"], periods=periods,
+                                          breaks=(price_breaks or {}).get(key), dtype=discount_type)
         row["months_of_history"], row["zero_months"] = len(series[key]), int((series[key] == 0).sum())
         if row["zero_months"]:
             row["flags"] = (row["flags"] + "; " if row["flags"] else "") + f"{row['zero_months']} month(s) with no demand counted as zero"
@@ -500,7 +755,11 @@ def build_plan(raw_df, config, basis=None, entered=None, overrides=None, horizon
             "days_per_month": cfg["days_per_month"]}
     cols = ["country", "product", "forecast_next_12m", "protection_months", "lead_time_demand", "sigma_over_interval",
             "safety_stock", "reorder_point", "order_quantity", "orders_per_year", "average_inventory_units",
-            "average_inventory_value", "cash_per_order", "turnover", "yearly_cost", "service_level", "stockout_risk_target",
+            "average_inventory_value", "cash_per_order", "turnover", "days_of_stock", "yearly_cost", "ordering_cost_year", "holding_cost_year",
+            "annual_demand", "eoq_unconstrained", "unit_cost", "order_cost", "holding_per_unit_year", "purchase_cost_year",
+            "total_cost_year", "holding_rate", "freight_unit_cost_year", "price_used", "savings_vs_plain_order", "econ",
+            "lead_time_months", "review_period_months", "demand_ratio_at_service", "demand_ratio_mean",
+            "service_level", "stockout_risk_target",
             "error_source", "backtest_windows", "months_of_history", "zero_months", "flags", "notes"]
     table = pd.DataFrame(tables).reindex(columns=cols)
     return {"table": table, "monthly": pd.concat(monthlies, ignore_index=True) if monthlies else pd.DataFrame(),

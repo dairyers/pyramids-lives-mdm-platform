@@ -95,7 +95,8 @@ def prepare(df, mapping, value_map, config, drop_duplicates=False):
         reason = reason.where(reason.notna() | ~dup, REJECT["duplicate"])
     t["reason"] = reason
     t["YearMonth"] = t["date_parsed"].dt.to_period("M").dt.to_timestamp()
-    for c in ["on_hand", "stockout_flag", "received_qty", "unit_cost", "price", "salvage", "order_cost", "pack_size", "moq"]:
+    for c in ["on_hand", "on_order", "stockout_flag", "received_qty", "unit_cost", "price", "salvage", "order_cost", "pack_size", "moq",
+              "freight_per_unit", "freight_per_order", "free_shipping_above"]:
         if c in t.columns:
             num = pd.to_numeric(t[c], errors="coerce")
             bad = int((num.isna() & t[c].notna()).sum())
@@ -220,3 +221,53 @@ def demand_frame(table, basis, config):
 def data_id(table, basis):
     """A stable id for caching: the same rows and basis give the same id."""
     return f"upload:{basis}:{len(table)}:{int(pd.util.hash_pandas_object(table[['row', 'quantity_num', 'category']].astype(str), index=False).sum() % 10**12)}"
+
+
+def current_stock(table):
+    """The latest stock figures per country and product from the file: on_hand and on_order from the most recent usable row that has an
+    on_hand value. Empty when the file has no on_hand column or no values in it. Used by Today's actions."""
+    cols = ["country", "product", "on_hand", "on_order"]
+    if table is None or table.empty or "on_hand" not in table.columns:
+        return pd.DataFrame(columns=cols)
+    ok = table[table["reason"].isna() & table["on_hand"].notna()].sort_values(["date_parsed", "row"])
+    if ok.empty:
+        return pd.DataFrame(columns=cols)
+    last = ok.groupby(["country", "product"], as_index=False).last()
+    if "on_order" not in last:
+        last["on_order"] = np.nan
+    return last[cols].reset_index(drop=True)
+
+
+def stockout_flags(table):
+    """Months the file itself marks as stockouts (stockout_flag = 1) as (country, product, month) tuples, for the stockout screen."""
+    if table is None or table.empty or "stockout_flag" not in table.columns:
+        return []
+    ok = table[table["reason"].isna() & (table["stockout_flag"] == 1)]
+    return sorted({(r.country, r.product, r.YearMonth) for r in ok.itertuples()})
+
+
+def read_price_breaks(data, filename):
+    """Quantity discounts from the 'Price breaks' sheet of an Excel upload: {(country, product): [(from quantity, price), ...]} where country
+    may be 'ALL'. Returns {} when the sheet is missing or empty. Rows that are not numbers are ignored."""
+    if not (filename or "").lower().endswith((".xlsx", ".xlsm")):
+        return {}
+    try:
+        names = pd.ExcelFile(io.BytesIO(data)).sheet_names
+        if "Price breaks" not in names:
+            return {}
+        df = pd.read_excel(io.BytesIO(data), sheet_name="Price breaks")
+    except Exception:
+        return {}
+    cols = {c: _norm(c) for c in df.columns}
+    pick = {v: k for k, v in cols.items()}
+    need = ["country", "product", "fromquantity", "unitprice"]
+    if any(n not in pick for n in need):
+        return {}
+    out = {}
+    for _, r in df.iterrows():
+        q, p = pd.to_numeric(r[pick["fromquantity"]], errors="coerce"), pd.to_numeric(r[pick["unitprice"]], errors="coerce")
+        c, pr = r[pick["country"]], r[pick["product"]]
+        if pd.isna(q) or pd.isna(p) or pd.isna(c) or pd.isna(pr) or q < 0 or p <= 0:
+            continue
+        out.setdefault((str(c).strip(), str(pr).strip()), []).append((float(q), float(p)))
+    return {k: sorted(v) for k, v in out.items()}

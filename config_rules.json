@@ -405,16 +405,18 @@
       "upload_warning": "These results come from the file you uploaded. Anything the file does not contain (lead time, costs, service level) is an assumption, tagged as such, and nothing here claims an improvement unless a replay on your history shows one.",
       "ingest": {
         "required": ["date", "country", "product", "quantity", "record_type"],
-        "optional": ["on_hand", "stockout_flag", "order_date", "receipt_date", "received_qty", "unit_cost", "price", "salvage",
-                     "order_cost", "pack_size", "moq"],
-        "unused_for_now": ["on_hand", "stockout_flag", "received_qty"],
+        "optional": ["on_hand", "on_order", "stockout_flag", "order_date", "receipt_date", "received_qty", "unit_cost", "price", "salvage",
+                     "order_cost", "pack_size", "moq", "freight_per_unit", "freight_per_order", "free_shipping_above"],
+        "unused_for_now": ["received_qty"],
         "synonyms": {
           "date": ["date", "docdate", "documentdate", "transactiondate", "requestdate"],
           "country": ["country", "ucountry", "countrycode"],
           "product": ["product", "productline", "uproductline", "item", "itemcode", "sku"],
           "quantity": ["quantity", "qty", "units"],
           "record_type": ["recordtype", "type", "doctype"],
-          "on_hand": ["onhand", "stockonhand", "stock"], "stockout_flag": ["stockoutflag", "stockout"],
+          "on_hand": ["onhand", "stockonhand", "stock"], "on_order": ["onorder", "stockonorder", "openorders"], "stockout_flag": ["stockoutflag", "stockout"],
+          "freight_per_unit": ["freightperunit", "shippingperunit"], "freight_per_order": ["freightperorder", "shippingperorder"],
+          "free_shipping_above": ["freeshippingabove", "freeshippingthreshold"],
           "order_date": ["orderdate", "supplierorderdate", "podate"], "receipt_date": ["receiptdate", "receiveddate", "grdate"],
           "received_qty": ["receivedqty", "receivedquantity"], "unit_cost": ["unitcost", "cost", "avgprice"],
           "price": ["price", "unitprice", "sellingprice"], "salvage": ["salvage", "salvagevalue"],
@@ -438,6 +440,33 @@
       "backtest": {"min_train_months": 12, "min_windows": 6, "min_prior_windows": 4, "borrow_widen": 1.25, "min_ratio": 0.05,
                    "coverage_tolerance": 0.03, "max_inflation": 2.0, "inflation_step": 0.05, "min_bandwidth": 0.02,
                    "fallback_cv": 0.3, "bootstrap_draws": 2000},
+      "care_levels": {
+        "relaxed": {"label": "Relaxed", "service_level": 0.90, "plain": "may run short about 1 time in 10"},
+        "normal": {"label": "Normal", "service_level": 0.95, "plain": "may run short about 1 time in 20"},
+        "careful": {"label": "Careful", "service_level": 0.99, "plain": "may run short about 1 time in 100"}},
+      "actions": {"soon_margin": 0.25, "over_orders": 2.0, "example_low": 0.3, "example_high": 2.2, "example_seed": 11,
+                  "status_order": ["Out of stock", "Order now", "Order soon", "Fine", "More than needed", "Enter current stock"]},
+      "discount": {"types": {"all_units": "Every unit gets the lower price", "incremental": "Only the units above each break get the lower price"},
+                   "default": "all_units", "grid_points": 160},
+      "stockout": {"low_fraction": 0.4, "level_months": 6, "min_level_months": 3,
+                   "note": "A month is flagged when demand fell well below what the usual level and season predict. Nothing is changed until you confirm it."},
+      "replay": {
+        "months": 12, "baseline_buffer": 0.20, "baseline_avg_months": 6, "flat_avg_months": 12, "bootstrap": 1000, "ci": [0.05, 0.95],
+        "policy_labels": {"plan": "This plan", "flat": "Flat average, no spare stock", "moving": "Moving average plus a 20% buffer"},
+        "bar_labels": {"plan": "This plan", "flat": "Flat<br>average", "moving": "Moving avg<br>+ 20% buffer"},
+        "small_sample_note": "This replays about a year of demand across a handful of products. That is a small sample, so differences smaller than the ranges shown cannot be told apart from luck."
+      },
+      "advice": {
+        "default_goal": "balanced", "default_risk": "medium", "top_n": 5,
+        "goals": {"cost": {"label": "Cut costs", "plain": "lower the yearly cost of ordering and holding stock"},
+                  "cash": {"label": "Free up cash", "plain": "tie up less money in stock"},
+                  "service": {"label": "Never run out", "plain": "keep products on the shelf"},
+                  "balanced": {"label": "A bit of everything", "plain": "balance cost, cash and availability"}},
+        "risk_levels": {"low": {"label": "Low", "max_short": 0.01, "plain": "running short should be very rare (about 1 in 100)"},
+                        "medium": {"label": "Medium", "max_short": 0.05, "plain": "running short now and then is acceptable (about 1 in 20)"},
+                        "high": {"label": "High", "max_short": 0.10, "plain": "running short sometimes is acceptable (about 1 in 10)"}},
+        "slow_factor": 1.25, "lead_shift_months": 1.0, "min_cycle_days": 14, "order_cost_multiplier": 5.0, "high_share": 0.5
+      },
       "policy": {"eoq_iterations": 5, "eoq_tolerance": 0.01, "service_levels_shown": [0.90, 0.95, 0.99],
                  "service_level_bounds": [0.5, 0.999], "low_bound_note_months": 1},
       "defaults": {
@@ -451,7 +480,11 @@
         "moq": {"value": null, "unit": "units", "note": "Smallest order the supplier accepts."},
         "storage_cap": {"value": null, "unit": "units", "note": "Largest order that fits in storage."},
         "budget_cap": {"value": null, "unit": "USD per order", "note": "Largest cash tied up in one order."},
-        "growth_override_pct": {"value": 0.0, "unit": "% per year", "note": "What-if only: extra yearly growth added on top of the forecast."}
+        "growth_override_pct": {"value": 0.0, "unit": "% per year", "note": "What-if only: extra yearly growth added on top of the forecast."},
+        "demand_change_pct": {"value": 0.0, "unit": "% vs forecast", "note": "What-if only: demand this much above (or below) the forecast, all year."},
+        "freight_per_unit": {"value": 0.0, "unit": "USD per unit", "note": "Shipping cost for each unit. Leave at 0 if shipping is already in the price."},
+        "freight_per_order": {"value": 0.0, "unit": "USD per order", "note": "Shipping or customs cost for each order, however big. Added to the cost per order."},
+        "free_shipping_above": {"value": null, "unit": "USD per order", "note": "If an order is worth at least this, the per-order shipping is waived."}
       }
     },
     "margin": {"assumed": true, "note": "Assumed gross margin by product line for the prototype. Replace with Finance's figures.",

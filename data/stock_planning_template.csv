@@ -1,1 +1,1 @@
-date,country,product,quantity,record_type,on_hand,stockout_flag,order_date,receipt_date,received_qty,unit_cost,price,salvage,order_cost,pack_size,moq
+date,country,product,quantity,record_type,on_hand,on_order,stockout_flag,order_date,receipt_date,received_qty,unit_cost,price,salvage,order_cost,pack_size,moq,freight_per_unit,freight_per_order,free_shipping_above
