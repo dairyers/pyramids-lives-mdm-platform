@@ -118,7 +118,7 @@ def _wrap_layout(data, line_px=20, pad_px=16, max_px=200, page_px=None):
         return None, {}
     PAGE_PX_ = page_px or PAGE_PX
     text = data.astype(str)
-    longest = {c: int(max(text[c].str.len().max(), len(str(c)))) for c in text.columns}
+    longest = {c: int(max(0 if pd.isna(text[c].str.len().max()) else text[c].str.len().max(), len(str(c)))) for c in text.columns}
     want = {c: min(n * CHAR_PX + CELL_PAD_PX, 360) for c, n in longest.items()}
     if sum(want.values()) <= PAGE_PX_ and max(longest.values()) < 40:
         return None, {}

@@ -53,6 +53,11 @@ def forecast(include, entity, country, line, model=None, lookback=None, horizon=
 
 
 @_by_selection
+def trend_facts(include):
+    return ea.overall_trend(_clean(include), common.base_config())
+
+
+@_by_selection
 def model_matrix(include):
     return ea.backtest_matrix(_clean(include), common.base_config())
 
@@ -719,6 +724,12 @@ def _forecast_tab(config, state, user):
         with st.container(border=True):
             charts.chart_title(series_label, f"Next {horizon} months · {label(model)} · {lookback} months of history")
             charts.show(forecast_figure(df, plan, extra, None if pd.isna(band) else float(band)), "an_chart", 380)
+            facts = trend_facts() if model in ea.NEEDS_GROWTH else None
+            if facts:
+                waves = facts["waves"]
+                st.caption(f"Yearly pattern: {waves} wave{'s' if waves != 1 else ''}, chosen from the data. Overall growth: "
+                           f"{facts['monthly_growth_pct']:+.2f}% a month (about {facts['annual_growth_pct']:+.1f}% a year), "
+                           f"from a straight-line fit across all {facts['series']} country and product series.")
         _forecast_review(config, state, user, key, series_label, df, f"{label(model)}, {lookback} months of history")
     rows = []
     for c in _options(config, "U_Country"):
@@ -820,10 +831,13 @@ def render(config, state, user):
         st.info("Your role has no access to sales insights.")
         return
     _data_warning(config)
-    overview, forecast_tab, accounts = st.tabs(["Overview", "Forecast explorer", "Customers to follow up"])
+    from tabs import tab_stock                      # imported here because tab_stock reuses this module's chart colours
+    overview, forecast_tab, stock_tab, accounts = st.tabs(["Overview", "Forecast explorer", "Stock planning", "Customers to follow up"])
     with overview:
         _overview(config, state)
     with forecast_tab:
         _forecast_tab(config, state, user)
+    with stock_tab:
+        tab_stock.render(config, state, user)
     with accounts:
         _accounts_tab(config, state, user, access)

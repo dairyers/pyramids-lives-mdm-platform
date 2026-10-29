@@ -496,3 +496,30 @@ def test_new_vs_existing_matches_the_regional_view():
     assert (merged["new_account_qty"] - merged["new_qty"]).abs().max() < 1e-6
     status = ea.account_status(CLEAN, CONFIG, as_of=AS_OF)
     assert set(status) <= {"New", "Existing"}
+
+
+# ----------------------------------------------------------------------------- yearly waves chosen from the data
+def _spiky(df):
+    f = df["YearMonth"].dt.month.map({12: 2.2, 1: 1.8, 6: 0.5}).fillna(1.0)
+    return df.assign(Quantity=df["Quantity"] * f)
+
+
+def test_waves_follow_the_data_and_the_months_available():
+    assert ea.choose_waves(CLEAN, CONFIG) == 1                                   # the generated data has one smooth yearly wave
+    assert ea.choose_waves(_spiky(CLEAN), CONFIG) >= 2                           # a sharp year-end burst needs more than one
+    short = CLEAN[CLEAN["YearMonth"] >= CLEAN["YearMonth"].max() - pd.DateOffset(months=13)]
+    assert ea.choose_waves(_spiky(short), CONFIG) == 1                           # 14 months only pay for one wave
+
+
+def test_waves_can_still_be_fixed_in_config():
+    import copy
+    cfg = copy.deepcopy(CONFIG)
+    cfg["analytics"]["forecast"]["seasonal_series"]["harmonics"] = 2
+    assert ea.choose_waves(CLEAN, cfg) == 2
+
+
+def test_overall_trend_reports_regression_growth():
+    t = ea.overall_trend(CLEAN, CONFIG)
+    assert t["waves"] == 1 and t["series"] == 15 and t["months"] >= 12
+    assert 0 < t["monthly_growth_pct"] < 2 and t["annual_growth_pct"] == pytest.approx((1 + t["monthly_growth_pct"] / 100) ** 12 * 100 - 100, abs=0.6)
+    assert ea.overall_trend(CLEAN[CLEAN["YearMonth"] > CLEAN["YearMonth"].max() - pd.DateOffset(months=5)], CONFIG) is None

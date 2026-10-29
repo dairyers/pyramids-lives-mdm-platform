@@ -11,3 +11,5 @@ docs/
 CLAUDE.md
 KICKOFF_PROMPTS.md
 ai_prompt_sequence_v3.txt
+local_app.py
+data/local_recording_seed.json

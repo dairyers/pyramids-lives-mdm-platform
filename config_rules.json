@@ -392,12 +392,68 @@
                  "seasonal_growth": "Own season + regional growth", "blend": "Blend of all four"},
       "damped": {"alphas": [0.2, 0.4, 0.6, 0.8], "betas": [0.05, 0.1, 0.2, 0.4], "phis": [0.8, 0.9, 0.95]},
       "seasonal": {"period": 12, "min_pooled_months": 12},
-      "seasonal_series": {"harmonics": 1, "recency_half_life_months": 3, "min_history_months": 12, "growth_share": 1.0}
+      "seasonal_series": {"harmonics": "auto", "max_harmonics": 3, "min_months_per_number": 3, "fallback_harmonics": 1, "recency_half_life_months": 3, "min_history_months": 12, "growth_share": 1.0}
     },
     "churn": {"recent_window_months": 3, "baseline_window_months": 12, "baseline_precedes_recent": true,
               "velocity_threshold": -0.20, "min_baseline_monthly_volume": 5},
     "cross_sell": {"antecedent_products": ["A", "B"], "consequent_product": "C", "window_days": 90},
     "rolling_backtest": {"origins": 3, "origin_step_months": 3},
+    "inventory": {
+      "seed": 2026, "simulations": 5000, "horizon_months": 12, "days_per_month": 30.4375,
+      "data_source_label": "Sample data (generated): data/regional_orders.csv",
+      "sample_warning": "The sample data was generated to match the forecast model's assumptions, so these results are not evidence of real-world performance. Costs, lead times and service levels are assumptions until Lives Group's SAP data replaces them.",
+      "upload_warning": "These results come from the file you uploaded. Anything the file does not contain (lead time, costs, service level) is an assumption, tagged as such, and nothing here claims an improvement unless a replay on your history shows one.",
+      "ingest": {
+        "required": ["date", "country", "product", "quantity", "record_type"],
+        "optional": ["on_hand", "stockout_flag", "order_date", "receipt_date", "received_qty", "unit_cost", "price", "salvage",
+                     "order_cost", "pack_size", "moq"],
+        "unused_for_now": ["on_hand", "stockout_flag", "received_qty"],
+        "synonyms": {
+          "date": ["date", "docdate", "documentdate", "transactiondate", "requestdate"],
+          "country": ["country", "ucountry", "countrycode"],
+          "product": ["product", "productline", "uproductline", "item", "itemcode", "sku"],
+          "quantity": ["quantity", "qty", "units"],
+          "record_type": ["recordtype", "type", "doctype"],
+          "on_hand": ["onhand", "stockonhand", "stock"], "stockout_flag": ["stockoutflag", "stockout"],
+          "order_date": ["orderdate", "supplierorderdate", "podate"], "receipt_date": ["receiptdate", "receiveddate", "grdate"],
+          "received_qty": ["receivedqty", "receivedquantity"], "unit_cost": ["unitcost", "cost", "avgprice"],
+          "price": ["price", "unitprice", "sellingprice"], "salvage": ["salvage", "salvagevalue"],
+          "order_cost": ["ordercost", "orderingcost"], "pack_size": ["packsize", "pack"], "moq": ["moq", "minimumorder"]},
+        "record_types": {
+          "purchase_request": ["purchase_request", "purchase request", "purchaserequest", "pr", "request", "requisition", "draft_po", "draft po"],
+          "order": ["order", "po", "confirmed_po", "confirmed po", "confirmed", "sales order", "customer order"],
+          "mdm_setup": ["mdm_setup", "mdm setup", "master data", "setup", "new customer", "new product", "new item"],
+          "other": ["other", "inquiry", "enquiry", "cancelled_po", "cancelled po", "cancelled"]},
+        "record_type_labels": {"purchase_request": "Purchase request", "order": "Customer order", "mdm_setup": "MDM setup request", "other": "Other"},
+        "basis_type": {"requests": "purchase_request", "orders": "order"},
+        "outlier_mad_k": 8.0, "mixed_units_ratio": 1000.0, "min_history_months": 12
+      },
+      "demand_basis": {
+        "default": "requests",
+        "sets": {"requests": ["CONFIRMED_USED", "DRAFT_PO"], "orders": ["CONFIRMED_USED"]},
+        "labels": {"requests": "Purchase requests (confirmed and draft orders)", "orders": "Confirmed orders only"},
+        "why_requests": "Requests are logged before stock limits what can ship, so they sit closer to true demand than shipped orders do.",
+        "setup_category": "CONFIRMED_NOT_READY"
+      },
+      "backtest": {"min_train_months": 12, "min_windows": 6, "min_prior_windows": 4, "borrow_widen": 1.25, "min_ratio": 0.05,
+                   "coverage_tolerance": 0.03, "max_inflation": 2.0, "inflation_step": 0.05, "min_bandwidth": 0.02,
+                   "fallback_cv": 0.3, "bootstrap_draws": 2000},
+      "policy": {"eoq_iterations": 5, "eoq_tolerance": 0.01, "service_levels_shown": [0.90, 0.95, 0.99],
+                 "service_level_bounds": [0.5, 0.999], "low_bound_note_months": 1},
+      "defaults": {
+        "lead_time_months": {"value": 1.0, "unit": "months", "note": "Default: 1 month, fixed. Supplier lead time is not in the data: confirm it."},
+        "review_period_months": {"value": 1.0, "unit": "months", "note": "Default: monthly review, because the data is monthly. 0 means continuous review."},
+        "service_level": {"value": 0.95, "unit": "share of cycles with no stockout", "note": "Default 95%, unconfirmed."},
+        "holding_rate": {"value": 0.20, "unit": "% of unit cost per year", "note": "Default 20%: cost of capital plus storage, insurance and obsolescence. Unconfirmed."},
+        "order_cost": {"value": 100.0, "unit": "USD per order", "note": "Placeholder: must confirm. Admin, freight and handling for one supplier order."},
+        "salvage": {"value": null, "unit": "USD per unit", "note": "Leave blank unless you know what a leftover unit sells for. Needed to derive a service level from costs."},
+        "pack_size": {"value": null, "unit": "units", "note": "Orders must be a multiple of this."},
+        "moq": {"value": null, "unit": "units", "note": "Smallest order the supplier accepts."},
+        "storage_cap": {"value": null, "unit": "units", "note": "Largest order that fits in storage."},
+        "budget_cap": {"value": null, "unit": "USD per order", "note": "Largest cash tied up in one order."},
+        "growth_override_pct": {"value": 0.0, "unit": "% per year", "note": "What-if only: extra yearly growth added on top of the forecast."}
+      }
+    },
     "margin": {"assumed": true, "note": "Assumed gross margin by product line for the prototype. Replace with Finance's figures.",
                "by_product": {"A": 0.22, "B": 0.38, "C": 0.45}},
     "order_pattern": {

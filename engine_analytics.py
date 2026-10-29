@@ -134,10 +134,9 @@ def harmonic_index(y, months, harmonics):
     return {m: v / mean for m, v in f.items()}
 
 
-def pooled_growth(clean_df, config, upto=None):
-    """Monthly growth rate shared by every country and product: the log-slope of the regional volume after each
-    series' own seasonal pattern is removed. One steady number from all series, so a single noisy series cannot invent a
-    trend. None when no series has enough history. `upto` keeps a backtest honest."""
+def _history_series(clean_df, config, upto=None):
+    """(month span, one monthly array per country x product series) over the history up to `upto`, or None when the
+    history is shorter than min_history_months. A series that started late is left out: it would fake a step up."""
     ss = config["analytics"]["forecast"]["seasonal_series"]
     if clean_df is None or clean_df.empty:
         return None
@@ -145,16 +144,76 @@ def pooled_growth(clean_df, config, upto=None):
     span = pd.date_range(d["YearMonth"].min(), d["YearMonth"].max(), freq="MS")
     if len(span) < ss["min_history_months"]:
         return None
+    arrays = [g.groupby("YearMonth")["Quantity"].sum().astype(float).reindex(span, fill_value=0.0).to_numpy()
+              for _, g in d.groupby(["U_Country", "U_ProductLine"]) if g["YearMonth"].min() <= span[0]]
+    return (span, arrays) if arrays else None
+
+
+def _wave_columns(months, waves):
+    mon = np.array([m.month for m in months], dtype=float)
+    cols = [np.ones(len(mon)), np.arange(len(mon), dtype=float)]
+    for k in range(1, waves + 1):
+        cols += [np.sin(2 * np.pi * k * mon / 12), np.cos(2 * np.pi * k * mon / 12)]
+    return np.column_stack(cols)
+
+
+def choose_waves(clean_df, config, upto=None):
+    """How many yearly waves the seasonal curve gets. A fixed number in config (seasonal_series.harmonics) is used as it
+    is. With "auto" every allowed count is scored on all series together (AICc on the log-volume fit: it rewards a closer
+    fit and charges for each extra fitted number, more heavily on short history) and the lowest score wins. A count is
+    allowed only when there are at least min_months_per_number months per fitted number, so 12 months allow one wave, 18
+    allow two and 24 allow three. `upto` keeps a backtest honest: only months up to it are looked at."""
+    ss = config["analytics"]["forecast"]["seasonal_series"]
+    if ss["harmonics"] != "auto":
+        return int(ss["harmonics"])
+    found = _history_series(clean_df, config, upto)
+    if found is None:
+        return int(ss["fallback_harmonics"])
+    span, arrays = found
+    n, best = len(span), None
+    for k in range(1, int(ss["max_harmonics"]) + 1):
+        p = 2 + 2 * k
+        if n < ss["min_months_per_number"] * p or n - p - 1 <= 0:
+            break
+        X, score = _wave_columns(span, k), 0.0
+        for y in arrays:
+            ly = np.log(np.clip(y, 1.0, None))
+            beta, *_ = np.linalg.lstsq(X, ly, rcond=None)
+            rss = float(((ly - X @ beta) ** 2).sum())
+            score += n * np.log(max(rss / n, 1e-12)) + 2 * p + 2 * p * (p + 1) / (n - p - 1)
+        if best is None or score < best[0]:
+            best = (score, k)
+    return best[1] if best else int(ss["fallback_harmonics"])
+
+
+def pooled_growth(clean_df, config, upto=None):
+    """Monthly growth rate shared by every country and product: the slope of a straight-line regression on the log of
+    the regional volume (every series added up after its own seasonal pattern is removed), so it is a steady percentage per
+    month. One number from all series, so a single noisy series cannot invent a trend. None when no series has enough
+    history. `upto` keeps a backtest honest."""
+    found = _history_series(clean_df, config, upto)
+    if found is None:
+        return None
+    span, arrays = found
+    waves = choose_waves(clean_df, config, upto)
     total = np.zeros(len(span))
-    for _, g in d.groupby(["U_Country", "U_ProductLine"]):
-        s = g.groupby("YearMonth")["Quantity"].sum().astype(float).reindex(span, fill_value=0.0)
-        if g["YearMonth"].min() > span[0]:
-            continue                                            # a series that started late would fake a step up
-        idx = harmonic_index(s.to_numpy(), span, ss["harmonics"])
-        total += s.to_numpy() / np.array([idx[m.month] for m in span])
+    for y in arrays:
+        idx = harmonic_index(y, span, waves)
+        total += y / np.array([idx[m.month] for m in span])
     if total.sum() <= 0:
         return None
     return float(np.polyfit(np.arange(len(span)), np.log(np.clip(total, 1.0, None)), 1)[0])
+
+
+def overall_trend(clean_df, config, upto=None):
+    """The two numbers the seasonal-growth forecast rests on, for display: the yearly waves chosen and the overall growth
+    from the straight-line regression (per month and per year, as percentages). None when there is too little history."""
+    g = pooled_growth(clean_df, config, upto)
+    found = _history_series(clean_df, config, upto)
+    if g is None or found is None:
+        return None
+    return {"waves": choose_waves(clean_df, config, upto), "months": len(found[0]), "series": len(found[1]),
+            "monthly_growth_pct": round((np.exp(g) - 1) * 100, 2), "annual_growth_pct": round((np.exp(12 * g) - 1) * 100, 1)}
 
 
 def _m_seasonal_growth(w, h, fc, months, season):
@@ -163,7 +222,7 @@ def _m_seasonal_growth(w, h, fc, months, season):
     ss, full = fc["seasonal_series"], months.get("full")
     if full is None or len(full) < ss["min_history_months"]:
         return None
-    idx_map = harmonic_index(full.to_numpy(), full.index, ss["harmonics"])
+    idx_map = harmonic_index(full.to_numpy(), full.index, months["waves"])
     idx = np.array([idx_map[m.month] for m in months["hist"]])
     fut_idx = np.array([idx_map[m.month] for m in months["future"]])
     des = np.asarray(w, dtype=float) / idx
@@ -233,11 +292,12 @@ def generate_demand_forecast(clean_df, entity, country, product_line, config, mo
     model = model or fc["default_model"]
     season = seasonal_index(clean_df, config) if model in NEEDS_SEASON else None
     growth = pooled_growth(clean_df, config) if model in NEEDS_GROWTH else None
+    waves = choose_waves(clean_df, config) if model in NEEDS_GROWTH else None
     return forecast_series(_series(clean_df, entity, country, product_line), config, horizon=horizon, model=model,
-                           lookback=lookback, season=season, growth=growth)
+                           lookback=lookback, season=season, growth=growth, waves=waves)
 
 
-def forecast_series(s, config, horizon=None, model=None, lookback=None, season=None, growth=None):
+def forecast_series(s, config, horizon=None, model=None, lookback=None, season=None, growth=None, waves=None):
     """The forecast for any monthly series with the chosen model (entity-agnostic). Only the last `lookback`
     months are used to fit (6 to 12 in the app). method_used names the model that produced the numbers; seasonal_trend
     falls back to damped_trend, and says so, when no pooled seasonal pattern is available."""
@@ -247,7 +307,9 @@ def forecast_series(s, config, horizon=None, model=None, lookback=None, season=N
         return pd.DataFrame(columns=FORECAST_COLUMNS)          # caller shows "not enough history"
     w = _window(s, lookback or fc["lookback_months"])
     months = {"hist": list(w.index), "future": list(pd.date_range(s.index[-1] + pd.offsets.MonthBegin(1), periods=h, freq="MS")),
-              "full": s, "growth": growth}
+              "full": s, "growth": growth,
+              "waves": waves or (fc["seasonal_series"]["harmonics"] if fc["seasonal_series"]["harmonics"] != "auto"
+                                 else fc["seasonal_series"]["fallback_harmonics"])}
     method = model
     if model == "blend":
         parts = [MODEL_FUNCS[m](w.to_numpy(), h, fc, months, season) for m in fc["blend_of"]]
@@ -571,6 +633,8 @@ def backtest_models(clean_df, config, lookback=None):
     last = clean_df["YearMonth"].max()
     cut = last - pd.offsets.MonthBegin(h)                                              # learned from training months only
     season, growth = seasonal_index(clean_df, config, upto=cut), pooled_growth(clean_df, config, upto=cut)
+    waves = choose_waves(clean_df, config, upto=cut)
+    summary["waves"], summary["monthly_growth"] = waves, growth
     countries = next(f["options"] for f in config["domains"]["CUSTOMER"]["fields"] if f["field"] == "U_Country")
     rows, actual_all = [], []
     pred_all = {m: [] for m in models} | {c: [] for c in base_cols}
@@ -590,7 +654,8 @@ def backtest_models(clean_df, config, lookback=None):
             row = {"U_Country": c, "country": rv["country_labels"].get(c, c), "U_ProductLine": p,
                    "product": an["product_lines"][p], "train_months": len(train), "holdout_qty": float(a.sum())}
             for m in models:
-                fc = forecast_series(train, config, horizon=h, model=m, lookback=lookback, season=season, growth=growth)
+                fc = forecast_series(train, config, horizon=h, model=m, lookback=lookback, season=season, growth=growth,
+                                     waves=waves)
                 pred = fc["forecast"].dropna().to_numpy()
                 row[f"wape_{m}"] = _wape(a, pred)
                 pred_all[m].append(pred)
