@@ -74,6 +74,14 @@ def test_most_urgent_rows_come_first_and_the_summary_adds_up():
     assert s["order_cash"] == pytest.approx(out["order_cash"].sum())
 
 
+def test_example_stock_copes_with_object_columns_from_an_upload():
+    t = PLAN["table"].copy()
+    t["reorder_point"] = t["reorder_point"].astype(object)
+    t["order_quantity"] = t["order_quantity"].astype(object)
+    out = ea_.example_stock(t, CONFIG)
+    assert len(out) == len(t.dropna(subset=["reorder_point"])) and out["on_hand"].notna().all()
+
+
 def test_example_stock_is_repeatable_and_not_blank():
     a, b = ea_.example_stock(PLAN["table"], CONFIG), ea_.example_stock(PLAN["table"], CONFIG)
     pd.testing.assert_frame_equal(a, b)

@@ -22,7 +22,8 @@ def example_stock(plan_table, config):
     a = act(config)
     t = plan_table.dropna(subset=["reorder_point"])
     rng = np.random.default_rng(a["example_seed"])
-    mid = t["reorder_point"].to_numpy() + t["order_quantity"].fillna(0).to_numpy() / 2.0
+    mid = (pd.to_numeric(t["reorder_point"], errors="coerce").to_numpy(dtype=float)
+           + pd.to_numeric(t["order_quantity"], errors="coerce").fillna(0).to_numpy(dtype=float) / 2.0)
     return pd.DataFrame({"country": t["country"].to_numpy(), "product": t["product"].to_numpy(),
                          "on_hand": np.round(mid * rng.uniform(a["example_low"], a["example_high"], len(t)), 0), "on_order": 0.0})
 
