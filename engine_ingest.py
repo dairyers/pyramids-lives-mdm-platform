@@ -90,9 +90,10 @@ def prepare(df, mapping, value_map, config, drop_duplicates=False):
                       ("type", t["category"].isna())):
         reason = reason.where(reason.notna() | ~bad, REJECT[name])
     cols = [c for c in ["date", "country", "product", "quantity", "record_type"] + cfg["optional"] if c in t.columns]
-    dup = t.duplicated(subset=cols, keep="first") & reason.isna()
-    first = t.loc[reason.isna()].groupby(cols, dropna=False)["row"].transform("first")
-    t["duplicate_of"] = first.where(dup.loc[first.index])
+    # a copy must match on every column in the file, not only the mapped ones: two orders that differ in customer or document number are two orders
+    key = pd.Series(pd.util.hash_pandas_object(df.drop(columns=["_row"]).astype("string"), index=False).to_numpy(), index=t.index)
+    dup = key.duplicated(keep="first") & reason.isna()
+    t["duplicate_of"] = t["row"].groupby(key).transform("first").where(dup)
     if drop_duplicates:
         reason = reason.where(reason.notna() | ~dup, REJECT["duplicate"])
     t["reason"] = reason

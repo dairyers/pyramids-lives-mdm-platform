@@ -137,6 +137,17 @@ def test_duplicates_can_be_listed_with_the_row_they_copy_before_deciding():
     assert prepared(synthetic(14))[0]["table"]["duplicate_of"].isna().all()
 
 
+def test_rows_that_differ_in_any_other_column_are_not_duplicates():
+    df = synthetic(14).copy()
+    df["customer"] = [f"C{i}" for i in range(len(df))]
+    twin = df.iloc[:3].copy()
+    again = pd.concat([df, twin], ignore_index=True)
+    assert prepared(again)[0]["table"]["duplicate_of"].notna().sum() == 3
+    twin["customer"] = "someone else"
+    other = pd.concat([df, twin], ignore_index=True)
+    assert prepared(other)[0]["table"]["duplicate_of"].isna().all()
+
+
 def test_gaps_short_history_outliers_and_mixed_units_are_reported_not_repaired():
     df = synthetic(30)
     df = df[~((df["country"] == "ZZ") & (df["product"] == "X1") & df["date"].str.startswith("2024-06"))]   # a missing month

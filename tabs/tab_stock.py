@@ -162,7 +162,7 @@ def _source(config):
     dups = table[table["duplicate_of"].notna()]
     if len(dups):
         with st.expander(f"Exact duplicate rows ({len(dups)}): see them before you decide"):
-            st.caption("Each row below is an exact copy of the earlier row named in 'Copy of row' (the first copy is always kept). "
+            st.caption("Each row below matches the earlier row named in 'Copy of row' in every column of your file (the first copy is always kept). "
                        + ("They are excluded now." if drop else "They are counted as demand now. Tick 'Exclude exact duplicate rows' above to leave them out."))
             ui.table(dups.assign(duplicate_of=dups["duplicate_of"].astype("Int64"))[["row", "duplicate_of", "date", "country", "product", "quantity", "record_type"]].astype(str).rename(
                 columns={"row": "Row in your file", "duplicate_of": "Copy of row"}), hide_index=True)
