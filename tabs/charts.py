@@ -27,11 +27,12 @@ pio.templates["lives"] = go.layout.Template(layout=go.Layout(
 ))
 
 
-def show(fig, key, height=320):
+def show(fig, key, height=320, on_select="ignore"):
     """Draw a figure with the dashboard template (theme=None stops Streamlit overriding fonts and colours) and no
-    toolbar clutter."""
+    toolbar clutter. on_select may be a callback that runs when a point is clicked."""
     fig.update_layout(template="lives", height=height)
-    st.plotly_chart(fig, theme=None, key=key, config={"displayModeBar": False, "displaylogo": False})
+    st.plotly_chart(fig, theme=None, key=key, config={"displayModeBar": False, "displaylogo": False},
+                    on_select=on_select, selection_mode="points")
 
 
 def chart_title(text, sub=""):

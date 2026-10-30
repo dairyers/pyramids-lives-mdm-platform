@@ -4,6 +4,7 @@ average, Churn Radar and Cross-sell. Access comes from config.roles[role].analyt
 (app.py); AGGREGATE -> forecasts and counts only; ACCOUNT_LEVEL -> also the account tables. Only the
 analytics output columns are displayed. Cached functions take no role."""
 import json
+import math
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -329,26 +330,39 @@ def map_figure(rows, opened, ratio=1.6, unit="units"):
         scale, lo, hi = ((charts.DIVERGING, -max(map(abs, g)), max(map(abs, g))) if min(g) < 0
                          else (charts.RAMP, min(g) - (max(g) - min(g)) * .3, max(g)))
     size = [10 + 18 * u / max(max(units), 1) for u in units]
-    custom = [[u, g] for u, g in zip(units, growth)]
-    fig = go.Figure(go.Scattergeo(lat=lat, lon=lon, mode="markers", hoverinfo="skip", showlegend=False,
+    custom = [[u, g, n] for u, g, n in zip(units, growth, names)]       # the place name rides along for the click handler
+    # A real street map underneath (Carto light tiles, no token needed) so the dots sit on the land itself.
+    fig = go.Figure(go.Scattermap(lat=lat, lon=lon, mode="markers", hoverinfo="skip", showlegend=False,
                                   marker={"size": [s * 1.6 for s in size], "color": values, "colorscale": scale, "cmin": lo,
-                                          "cmax": hi, "opacity": .22, "line": {"width": 0}}))          # the glow of the heat dot
-    fig.add_trace(go.Scattergeo(
-        lat=lat, lon=lon, text=names, mode="markers+text", textposition=_label_sides(lat, lon),
-        textfont={"size": 11, "color": charts.TEXT},
-        marker={"size": size, "color": values, "colorscale": scale, "cmin": lo, "cmax": hi, "opacity": .95,
-                "line": {"width": 1.5, "color": "#ffffff"}, "colorbar": {"title": {"text": title}, "thickness": 10, "len": .6}},
-        customdata=custom, hovertemplate=shown + "<extra></extra>"))
+                                          "cmax": hi, "opacity": .22}))                                 # the glow of the heat dot
+    fig.add_trace(go.Scattermap(lat=lat, lon=lon, mode="markers", hoverinfo="skip", showlegend=False,
+                                marker={"size": [s + 4 for s in size], "color": "#ffffff", "opacity": .95}))     # white ring
+    sides = _label_sides(lat, lon)
+    for n, side in enumerate(dict.fromkeys(sides)):             # a map trace takes one label position, so one trace per side
+        at = [i for i, s in enumerate(sides) if s == side]
+        fig.add_trace(go.Scattermap(
+            lat=[lat[i] for i in at], lon=[lon[i] for i in at], text=[names[i] for i in at], mode="markers+text",
+            textposition=side, textfont={"size": 12, "color": charts.TEXT},
+            marker={"size": [size[i] for i in at], "color": [values[i] for i in at], "colorscale": scale, "cmin": lo,
+                    "cmax": hi, "opacity": 1,
+                    **({"colorbar": {"title": {"text": title}, "thickness": 10, "len": .6}} if n == 0 else {"showscale": False})},
+            customdata=[custom[i] for i in at], hovertemplate=shown + "<extra></extra>"))
     lo_lat, hi_lat, lo_lon, hi_lon = min(lat), max(lat), min(lon), max(lon)
     lat_span, lon_span = max(hi_lat - lo_lat, 0.3) * 1.35, max(hi_lon - lo_lon, 0.3) * 1.35
     lon_span, lat_span = max(lon_span, lat_span * ratio), max(lat_span, lon_span / ratio)
-    mid_lat, mid_lon = (lo_lat + hi_lat) / 2, (lo_lon + hi_lon) / 2
-    fig.update_layout(showlegend=False)
-    fig.update_geos(projection_type="mercator", resolution=50, lataxis_range=[mid_lat - lat_span / 2, mid_lat + lat_span / 2],
-                    lonaxis_range=[mid_lon - lon_span / 2, mid_lon + lon_span / 2], showland=True, landcolor="#EFF1F2",
-                    showcountries=True, countrycolor="#BCC3CA", showocean=True, oceancolor="#F5F6F7", showframe=False,
-                    bgcolor="rgba(0,0,0,0)", coastlinecolor="#BCC3CA")
+    zoom = min(max(math.log2(560 / lon_span), 3.0), 12.0)        # about 560 world-degrees across the card at zoom 0
+    fig.update_layout(showlegend=False, margin={"t": 0, "l": 0, "r": 0, "b": 0},
+                      map={"style": "carto-positron", "zoom": zoom,
+                           "center": {"lat": (lo_lat + hi_lat) / 2, "lon": (lo_lon + hi_lon) / 2}})
     return fig
+
+
+def _zoom_to_country():
+    """Clicking a country's dot on the map picks that country in the Country filter, which opens the map up to its cities."""
+    points = st.session_state.get("an_map", {}).get("selection", {}).get("points", [])
+    custom = points[0].get("customdata") if points else None
+    if custom and len(custom) > 2:
+        st.session_state["an_f_country"] = [custom[2]]
 
 
 def _compare(config, countries, products):
@@ -504,7 +518,8 @@ def _overview(config, state):
                                         "Pick one country above to open the map up to its cities")
                 wide, side = st.columns([5, 2])
                 with wide:
-                    charts.show(map_figure(rows, opened, unit=unit), "an_map", 480)
+                    charts.show(map_figure(rows, opened, unit=unit), "an_map", 480,
+                                on_select="ignore" if opened else _zoom_to_country)
                 with side:
                     ui.table(pd.DataFrame({"Place": rows["place"], label.split(" (")[0]: rows["units"].round(0).astype(int),
                                            "Share": rows["share"].map("{:.1f}%".format) if opened
