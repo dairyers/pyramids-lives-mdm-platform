@@ -275,7 +275,7 @@ def change_figure(df, unit="units"):
     d = d.sort_values("change")
     fig = go.Figure(go.Bar(x=d["change"], y=d.index, orientation="h",
                            marker_color=[charts.GOOD if v >= 0 else charts.BAD for v in d["change"]],
-                           text=[f"{v:+,.0f}" for v in d["change"]], textposition="outside", cliponaxis=False,
+                           text=[f"  {v:+,.0f}  " for v in d["change"]], textposition="outside", cliponaxis=False,
                            customdata=d[["prior_qty", "current_qty"]].to_numpy(),
                            hovertemplate="%{y}: %{x:+,.0f} " + unit + "<br>year before %{customdata[0]:,.0f}, now "
                                          "%{customdata[1]:,.0f}<extra></extra>"))

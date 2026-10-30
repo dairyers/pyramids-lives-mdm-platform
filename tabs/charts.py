@@ -21,6 +21,7 @@ pio.templates["lives"] = go.layout.Template(layout=go.Layout(
     xaxis={"showgrid": False, "zeroline": False, "linecolor": GRID, "ticks": "outside", "tickcolor": GRID,
            "tickfont": {"color": MUTED}, "title": {"standoff": 8}, "automargin": True},
     yaxis={"gridcolor": GRID, "zeroline": False, "linecolor": "rgba(0,0,0,0)", "tickfont": {"color": MUTED},
+           "ticks": "outside", "ticklen": 10, "tickcolor": "rgba(0,0,0,0)",
            "title": {"font": {"color": MUTED, "size": 12}}, "automargin": True},
     legend={"orientation": "h", "yanchor": "top", "y": -0.14, "x": 0, "font": {"color": MUTED, "size": 12}},
 ))
