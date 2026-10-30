@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 import engine_analytics as ea
+import engine_sales_advice as esa
 from tabs import charts, common, ui
 
 # Categorical slots 1-3 in the app palette (validated: CVD worst dE 10.8, normal 21.5, >= 3:1 on the page):
@@ -529,12 +530,8 @@ def _overview(config, state):
         _compare(config, countries, products)
 
     rt = request_types()
-    ui.section("Recommended actions", "What to do first, in plain words. The numbers behind them are above and below.")
     gaps, stats = cross_sell()
-    actions = ea.build_recommended_actions({"regional": (df, period), "request_types": rt, "backtest": (bdf, bs),
-                                            "churn": churn(), "cross_sell": (gaps, stats)}, config)
-    with st.container(border=True, key="an_actions"):
-        st.markdown("\n".join(f"{i}. {a}" for i, a in enumerate(actions, 1)))
+    _advice({"regional": (df, period), "request_types": rt, "backtest": (bdf, bs), "churn": churn(), "cross_sell": (gaps, stats)}, config)
 
     with st.expander("Full numbers, including value in USD"):
         table = df[["country", "U_ProductLine", "product", "current_qty", "prior_qty", "growth_pct", "new_account_qty",
@@ -556,6 +553,34 @@ def _overview(config, state):
             "growth_excl_new_pct": st.column_config.NumberColumn("Existing customers %", format="%+.1f"),
             "current_usd": st.column_config.NumberColumn("Value (USD)", format="localized"),
             "usd_growth_pct": st.column_config.NumberColumn("Value growth %", format="%+.1f")})
+
+
+def _advice(results, config):
+    """What should we do: recommendations that change with what the business needs and how much the team can take on."""
+    a = esa.adv(config)
+    badge = {"grow": "green", "keep": "blue", "fix": "orange", "risk": "gray", "trust": "gray", "soon": "red"}
+    with st.container(key="an_actions"):
+        ui.section("What should we do?", "Tell us what the business needs and how much the team can take on. The advice below changes with your "
+                                         "answers, and every number comes from the results on this page (all countries and products).")
+        c = st.columns(2)
+        goal = c[0].segmented_control("What matters most right now?", list(a["goals"]), default=a["default_goal"], key="an_goal",
+                                      format_func=lambda g: a["goals"][g]["label"]) or a["default_goal"]
+        cap = c[1].segmented_control("How much can the team take on?", list(a["capacity"]), default=a["default_capacity"], key="an_capacity",
+                                     format_func=lambda k: a["capacity"][k]["label"]) or a["default_capacity"]
+        st.caption(f"For a business that wants to {a['goals'][goal]['plain']}, and {a['capacity'][cap]['plain']}:")
+        recs = esa.recommend(results, config, goal, cap)
+        if not recs:
+            st.info("Nothing stands out. There is not enough data for advice yet.")
+            return
+        for i, r in enumerate(recs, 1):
+            with st.container(border=True):
+                tags = ([":blue-badge[Matches what you chose]"] if r["matches"] and goal != a["default_goal"] else []) + \
+                    [f":{badge[t]}-badge[{esa.TAG_LABELS[t]}]" for t in r["tags"]]
+                st.markdown(f"**{i}. {r['title']}**  " + " ".join(tags))
+                st.markdown(r["why"])
+                for line in r["effects"]:
+                    st.markdown(f"- {line}")
+                st.markdown(f"**What to do:** {r['action']}")
 
 
 def _data_in_use(config, state):

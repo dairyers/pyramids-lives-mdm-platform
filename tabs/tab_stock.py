@@ -1065,11 +1065,11 @@ def _dashboard(plan, base, config, keys, run_one, what_if, replay_fn, actions_fn
             st.warning("Not enough history to plan these.")
         else:
             _tiles(plan, base, sel, t)
-            _advice_section(plan, config, what_if)
             _outlook(plan, sel, config)
             _main_chart(plan, sel, config, ahead, past, t)
-            _plan_section(plan, config)
             _side_charts(plan, sel, t, config, hidden_cost=not t["average_inventory_value"].notna().any())
+            _plan_section(plan, config)
+            _advice_section(plan, config, what_if)
             _trust_section(plan, config)
     with actions:
         actions_fn()

@@ -233,7 +233,7 @@
           {"op": "click", "t": {"text": "Customise page"}},
           {"op": "flag", "kind": "how", "text": "Customise page: each block can be switched off, so a regional manager can keep only the map and the heatmap."},
           {"op": "click", "t": {"text": "Customise page"}},
-          {"op": "look", "t": {"key": "an_actions"}, "label": "Actions", "text": "Recommended actions, in plain words and ranked. They are written from the numbers on this page: growth, forecast accuracy, customers buying less and cross-sell gaps."}
+          {"op": "look", "t": {"key": "an_actions"}, "label": "Actions", "text": "What should we do? Advice in plain words, ranked by what the business needs: grow sales, keep customers, fix weak spots or spread the risk. It is written from the numbers on this page: growth, forecast accuracy, customers buying less and cross-sell gaps."}
         ]},
         {"who": "priya@livesgroup.com", "page": "insights", "text": "The forecast explorer predicts the next months for one country and product, and shows how well each model did on months it never saw.", "ops": [
           {"op": "click", "t": {"text": "Forecast explorer"}},

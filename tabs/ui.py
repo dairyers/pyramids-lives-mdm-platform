@@ -501,8 +501,6 @@ table.lv-compare td.res-bad { color: #AA0808; font-weight: 600; }
 .lv-delta.flat { background: #EFF1F2; color: #556B82; }
 .lv-ctitle { font-size: .95rem; font-weight: 700; margin: .1rem 0 0; }
 .lv-csub { color: #556B82; font-size: .78rem; margin: 0 0 .3rem; }
-.st-key-an_actions { border-left: 4px solid #E76500 !important; }
-.st-key-an_actions ol { margin: 0; padding-left: 1.3rem; } .st-key-an_actions li { margin: .3rem 0; }
 </style>
 """
 

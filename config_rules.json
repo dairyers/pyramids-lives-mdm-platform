@@ -398,6 +398,24 @@
               "velocity_threshold": -0.20, "min_baseline_monthly_volume": 5},
     "cross_sell": {"antecedent_products": ["A", "B"], "consequent_product": "C", "window_days": 90},
     "rolling_backtest": {"origins": 3, "origin_step_months": 3},
+    "sales_advice": {
+      "default_goal": "balanced", "default_capacity": "several", "boost": 10,
+      "goals": {
+        "grow": {"label": "Grow sales", "plain": "grow sales", "boost": ["grow"]},
+        "keep": {"label": "Keep our customers", "plain": "keep the customers it already has", "boost": ["keep"]},
+        "fix": {"label": "Fix weak spots", "plain": "fix the pairs that are falling behind", "boost": ["fix"]},
+        "spread": {"label": "Spread the risk", "plain": "avoid relying on one place or a few new accounts", "boost": ["risk"]},
+        "balanced": {"label": "A bit of everything", "plain": "balance growth, retention, risk and confidence", "boost": []}
+      },
+      "capacity": {
+        "few": {"label": "A few things", "n": 3, "plain": "can act on only a few things at a time"},
+        "several": {"label": "Several things", "n": 5, "plain": "can take on several things"},
+        "all": {"label": "Everything", "n": 20, "plain": "wants the full list"}
+      },
+      "priority": {"churn": 6, "grow_top": 5, "new_account_lean": 5, "cross_sell": 4, "weak_pairs": 4, "concentration": 3, "forecast_trust": 3, "data_quality": 2},
+      "thresholds": {"grow_top_n": 3, "grow_min_pct": 5.0, "weak_below_pct": 2.0, "weak_top_n": 3, "lean_gap_pts": 5.0, "lean_top_n": 3,
+                     "concentration_share": 0.35, "dq_min_share": 0.05, "churn_names_n": 3}
+    },
     "inventory": {
       "seed": 2026, "simulations": 5000, "horizon_months": 12, "days_per_month": 30.4375,
       "data_source_label": "Sample data (generated): data/regional_orders.csv",

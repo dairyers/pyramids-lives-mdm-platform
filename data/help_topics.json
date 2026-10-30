@@ -111,7 +111,7 @@
      "answer": "Open Sales insights, Overview. Where are we growing? compares the last 12 months with the 12 before for each country and product. Hover the (i) for how growth is measured, and switch the measure to see it with and without new accounts."},
     {"id": "recommended_actions", "title": "What should we do first", "page": "insights", "tab": "ANALYTICS",
      "words": ["recommended actions", "what to do", "priorities", "next steps for sales", "recommendations", "where to focus"],
-     "answer": "Sales insights, Overview starts with Recommended Actions in plain words. Every number in them is calculated from the tables below it."},
+     "answer": "On Sales insights, Overview, the What should we do? section gives advice in plain words. Choose what matters most (grow sales, keep our customers, fix weak spots, spread the risk, or a bit of everything) and how much the team can take on, and the advice and its order change. Every number in it is calculated from the results on the page."},
     {"id": "orders_vs_enquiries", "title": "Which orders count in the forecast", "page": "insights", "tab": "ANALYTICS",
      "words": ["enquiries", "used in forecast", "draft orders", "cancelled orders", "which orders count", "exclude orders", "include enquiries", "order types"],
      "answer": "On Sales insights, Overview, the Orders, enquiries and setup requests table has a Used in forecast tick for each kind of row. Only confirmed customer orders are ticked by default. Tick others in or out to see the effect."},
